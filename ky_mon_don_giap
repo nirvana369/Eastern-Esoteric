@@ -44,6 +44,11 @@ module {
         ("Thiên Cầm", 5), ("Thiên Tâm", 6), ("Thiên Trụ", 7), ("Thiên Nhậm", 8), ("Thiên Anh", 9)
     ];
 
+    type TRUNG_CUNG_MODE = {
+        #General;
+        #ThauDiaKyMon;
+    };
+
     // Sorted by degrees for easier lookup
     // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
 
@@ -305,7 +310,7 @@ module {
             row # "\n"
         };
 
-        public func createTable() : Text {
+        public func lapTran() : Text {
             var output = createHorizontalLine();
             
             for (row in layout.vals()) {
@@ -328,6 +333,11 @@ module {
 
     public class KyMonDonGiap() {
 
+        var trungCungMode : TRUNG_CUNG_MODE = #General;
+
+        public func setTrungCungMode(mode : TRUNG_CUNG_MODE) {
+            trungCungMode := mode;
+        };
         // -------------------------------------------------------------
         // HELPER FUNCTIONS
         // -------------------------------------------------------------
@@ -378,24 +388,30 @@ module {
             return chart_data;
         };
 
-        public func tim_tuan_dau() {
-            var can = chart_data.can_gio_index;
-            var chi = chart_data.chi_gio_index;
+        public func tim_tuan_dau(thien_can : Nat, dia_chi : Nat, isUpdate : Bool) : {can_tuan_dau : Nat; chi_tuan_dau : Nat} {
+            var can = thien_can;
+            var chi = dia_chi;
             while (can != 0) {
                 can := move(9, can, -1);
                 chi := move(11, chi, -1);
             };
 
-            chart_data := { 
-                chart_data with 
-                can_tuan_dau_index = can;
-                chi_tuan_dau_index = chi;
+            if (isUpdate) {
+                chart_data := { 
+                    chart_data with 
+                    can_tuan_dau_index = can;
+                    chi_tuan_dau_index = chi;
+                };
+            };
+            return {
+                can_tuan_dau = can;
+                chi_tuan_dau = chi;
             };
         };
 
-        public func tim_phu_dau() {
-            var can = chart_data.can_ngay_index;
-            var chi = chart_data.chi_ngay_index;
+        public func tim_phu_dau(thien_can : Nat, dia_chi : Nat, isUpdate : Bool) : {can_phu_dau : Nat; chi_phu_dau : Nat} {
+            var can = thien_can;
+            var chi = dia_chi;
             if (can <= 4) {
                 while (can != 0) {
                     can := move(9, can, -1);
@@ -408,10 +424,16 @@ module {
                 };
             };
             
-            chart_data := { 
-                chart_data with 
-                can_phu_dau_index = can;
-                chi_phu_dau_index = chi;
+            if (isUpdate) {
+                chart_data := { 
+                    chart_data with 
+                    can_phu_dau_index = can;
+                    chi_phu_dau_index = chi;
+                };
+            };
+            return {
+                can_phu_dau = can;
+                chi_phu_dau = chi;
             };
         };
 
@@ -425,17 +447,17 @@ module {
             };
             chart_data := reset_data();
             // 1. Calculate Bazi (Four Pillars)
-            calculate_bazi(dt);
-            
+            let tu_tru = calculate_bazi(dt, true);
+
             // 2. Determine Solar Term
             find_solar_term_index(dt);
             
             // 3. Calculate Month Ganzhi (This must be after solar term)
             calculate_month_ganzhi(dt);
 
-            tim_tuan_dau();
+            let tuan_dau = tim_tuan_dau(chart_data.can_gio_index, chart_data.chi_gio_index, true);
 
-            tim_phu_dau();
+            let phu_dau = tim_phu_dau(chart_data.can_ngay_index, chart_data.chi_ngay_index, true);
             
             // 4. Determine Dun Type and Ju Number
             determine_dun_ju();
@@ -444,7 +466,7 @@ module {
             find_khong_vong(chart_data.can_tuan_dau_index, chart_data.chi_tuan_dau_index);
             
             // 6. Find Hidden Jia Stem (遁甲)
-            find_luc_nghi();
+            let nghi_an_giap = find_luc_nghi(chart_data.chi_tuan_dau_index, true);
 
             // 7. Arrange all elements on the chart
             arrange_palaces();
@@ -470,13 +492,20 @@ module {
             for (log in chart_data.information.vals()) info.add(log);
 
             let ky_mon_tran = KyMonTranDo(chart_data.palaces);
-            let bat_quai_do_3x3 = ky_mon_tran.createTable();
+            let bat_quai_do_3x3 = ky_mon_tran.lapTran();
             info.add(bat_quai_do_3x3);
 
             Text.join("\n-------------\n", info.vals());
         };
 
-        private func calculate_bazi(date_time : DateTime) {
+        private func calculate_bazi(date_time : DateTime, isUpdate : Bool) : {
+                                                                can_year : Nat;
+                                                                chi_year : Nat;
+                                                                can_day : Nat;
+                                                                chi_day : Nat;
+                                                                can_hour : Nat;
+                                                                chi_hour: Nat;
+                                                            } {
             let jd = calculate_julian_day(date_time);
 
             // Year Pillar (60-year cycle)
@@ -487,21 +516,30 @@ module {
             let day_offset = Int.abs(Float.toInt(Float.floor(jd + 1.5)));
             let day_gan_idx = (day_offset + 9) % 10;
             let day_zhi_idx = (day_offset + 1) % 12;
-            chart_data := { 
-                chart_data with 
-                can_nam_index = year_gan_idx;
-                chi_nam_index = year_zhi_idx;
-                can_ngay_index = day_gan_idx;
-                chi_ngay_index = day_zhi_idx;
-            };
 
             // Hour Pillar
             let hour_zhi_idx = (date_time.hour + 1) / 2 % 12;
             let hour_gan_idx = (day_gan_idx * 2 + hour_zhi_idx) % 10;
-            chart_data := { 
-                chart_data with 
-                can_gio_index = hour_gan_idx;
-                chi_gio_index = hour_zhi_idx;
+            
+            if (isUpdate) {
+                chart_data := { 
+                    chart_data with 
+                    can_nam_index = year_gan_idx;
+                    chi_nam_index = year_zhi_idx;
+                    can_ngay_index = day_gan_idx;
+                    chi_ngay_index = day_zhi_idx;
+                    can_gio_index = hour_gan_idx;
+                    chi_gio_index = hour_zhi_idx;
+                };
+            };
+
+            return {
+                can_year : Nat = year_gan_idx;
+                chi_year : Nat = year_zhi_idx;
+                can_day : Nat = day_gan_idx;
+                chi_day : Nat = day_zhi_idx;
+                can_hour : Nat = hour_gan_idx;
+                chi_hour: Nat = hour_zhi_idx;
             };
         };
         
@@ -580,12 +618,12 @@ module {
             };
         };
 
-        private func find_luc_nghi() {
+        private func find_luc_nghi(chi : Nat, isUpdate : Bool) : Text {
             // Xun Shou is the first stem in the current 10-day cycle
             // let xun_shou_gan_idx = day_gan_idx - (day_gan_idx % 10);
             // let xun_shou_zhi_idx = (day_zhi_idx - (day_gan_idx - xun_shou_gan_idx) + 12) % 12;
             
-            let luc_nghi = switch(chart_data.chi_tuan_dau_index) {
+            let luc_nghi = switch(chi) {
                 case (0) "Mậu";  // Giáp Tý
                 case (10) "Kỷ";   // Giáp Tuất
                 case (8) "Canh"; // Giáp Thân
@@ -594,19 +632,53 @@ module {
                 case (2) "Quý"; // Giáp Dần
                 case _ "Mậu"; // Default (shouldn't happen)
             };
-            chart_data := { 
-                chart_data with 
-                luc_nghi = luc_nghi 
+            if (isUpdate) {
+                chart_data := { 
+                    chart_data with 
+                    luc_nghi = luc_nghi 
+                };
             };
+            return luc_nghi;
+        };
+
+        public func don_giap_ky_mon(cuc : Nat,
+                                    am_duong_don : Int, 
+                                    can_gio : Text, 
+                                    chi_gio : Text
+                                    ) : (Text) {
+            if (cuc < 1 or cuc > 9) Debug.trap("Cục không hợp lệ! Giá trị nhận từ 1-9");
+            if (am_duong_don == 0 or am_duong_don < -1 or am_duong_don > 1) Debug.trap("Dương độn: 1 / Âm độn : -1");
+            let can_gio_index : Nat = switch (Array.indexOf<Text>(can_gio, THIEN_CAN, Text.equal)) {
+                case (?id) id;
+                case (null) Debug.trap("Can giờ không hợp lệ!");
+            };
+            let chi_gio_index : Nat = switch (Array.indexOf<Text>(chi_gio, DIA_CHI, Text.equal)) {
+                case (?id) id;
+                case (null) Debug.trap("Chi giờ không hợp lệ!");
+            };
+
+            // clear information
+            _clearInformation();
+
+            let don_cuc : Int = cuc - 1;
+
+            let palaces = _don_giap_ky_mon(don_cuc,
+                                            am_duong_don, 
+                                            can_gio_index,
+                                            chi_gio_index);
+
+            let lap_tran_ky_mon = KyMonTranDo(palaces);
+            (lap_tran_ky_mon.lapTran())
         };
 
         private func _don_giap_ky_mon(don_cuc : Int,
                                         am_duong_don : Int,
-                                        luc_nghi_hidden_tuan_dau_giap : Text,
-                                        thien_can_gio : Text,
-                                        chi_tuan_dau_index : Nat,
+                                        can_gio_index : Nat,
                                         chi_gio_index : Nat) : [Palace] {
-            
+
+            let tuan_dau = tim_tuan_dau(can_gio_index, chi_gio_index, false);
+            let nghi_an_giap = find_luc_nghi(tuan_dau.chi_tuan_dau, false);
+            let thien_can_gio = THIEN_CAN[can_gio_index];
             let direction : Int = am_duong_don; // Dương đi thuận - Âm đi nghịch;
 
             let luc_nghi_map = ["Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý", "Đinh", "Bính", "Ất"];
@@ -625,18 +697,18 @@ module {
                 p.cung_name := Option.get(don_giap_cung.get(index + 1), "None");
                 p.thien_can_dia_ban := luc_nghi_map[luc_nghi_start];
 
-                if (p.cung_id + 1 == 5) p.is_center := true;
+                p.is_center := ((p.cung_id + 1) == 5);
 
                 don_giap_ban.put(p.thien_can_dia_ban, p);
                 mapping_can_cung.put(index, p.thien_can_dia_ban);
                 luc_nghi_start := move(8, luc_nghi_start, 1);
             });
 
-            _an_thien_ban(don_giap_ban, mapping_can_cung, luc_nghi_hidden_tuan_dau_giap, thien_can_gio);
+            _an_thien_ban(don_giap_ban, mapping_can_cung, nghi_an_giap, thien_can_gio);
 
-            let truc_phu = truc_phu__an_cuu_tinh(don_giap_ban, mapping_can_cung, luc_nghi_hidden_tuan_dau_giap, thien_can_gio);
+            let truc_phu = truc_phu__an_cuu_tinh(don_giap_ban, mapping_can_cung, nghi_an_giap, thien_can_gio);
 
-            truc_su__an_bat_mon(don_giap_ban, mapping_can_cung, luc_nghi_hidden_tuan_dau_giap, chi_tuan_dau_index, chi_gio_index, am_duong_don);
+            truc_su__an_bat_mon(don_giap_ban, mapping_can_cung, nghi_an_giap, tuan_dau.chi_tuan_dau, chi_gio_index, am_duong_don);
             
             _an_bat_than(don_giap_ban, mapping_can_cung, thien_can_gio, truc_phu, am_duong_don);
 
@@ -648,6 +720,21 @@ module {
             return Buffer.toArray(final_palaces);
         };
 
+        private func _trung_cung_process() : Nat {
+            switch (trungCungMode) {
+                case (#ThauDiaKyMon) {
+                    // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
+                    // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
+                    if (chart_data.am_duong_don.0 > 0) {
+                        return CUNG.KHON_THO
+                    };
+                    return CUNG.CAN_THO;
+                };
+                // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
+                case (_) return CUNG.KHON_THO;
+            };
+        };
+
         private func _an_thien_ban(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
                                             luc_nghi_hidden_tuan_dau_giap : Text,
@@ -656,10 +743,7 @@ module {
             var nghi_truc_phu = switch (don_giap_ban.get(luc_nghi_hidden_tuan_dau_giap)) {
                 case (?p) {
                     if (p.is_center) {
-                        // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
-                            // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                            // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
-                        CUNG.KHON_THO
+                        _trung_cung_process();
                     } else {
                         p.cung_id
                     };
@@ -671,10 +755,7 @@ module {
             let truc_phu = switch (don_giap_ban.get(thien_can_gio)) {
                     case (?p) {
                         if (p.is_center) {
-                            // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
-                            // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                            // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
-                            CUNG.KHON_THO
+                            _trung_cung_process();
                         } else {
                             p.cung_id
                         };
@@ -709,10 +790,7 @@ module {
                 case (?p) {
                     if (p.is_center) {
                         cuu_tinh := "Thiên Cầm -> cung ";
-                        // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
-                            // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                            // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
-                        CUNG.KHON_THO
+                        _trung_cung_process();
                     } else {
                         cuu_tinh := star_pos(p.cung_id) # " -> cung ";
                         p.cung_id
@@ -735,10 +813,7 @@ module {
             let truc_phu = switch (don_giap_ban.get(thien_can_gio)) {
                     case (?p) {
                         if (p.is_center) {
-                            // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
-                            // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                            // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
-                            CUNG.KHON_THO
+                            _trung_cung_process();
                         } else {
                             p.cung_id
                         };
@@ -787,10 +862,7 @@ module {
                 case (?p) {
                     if (p.is_center) {
                         bat_mon := "Trung cung -> cung ";
-                        // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
-                        // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                        // Theo Kỳ môn độn giáp thì luôn ký cung Khôn (2)
-                        CUNG.KHON_THO
+                        _trung_cung_process();
                     } else {
                         bat_mon := door_pos(p.cung_id) # " -> cung ";
                         p.cung_id
@@ -834,7 +906,7 @@ module {
                     if (not found and DIA_CHI[chi_tuan_dau_idx] == DIA_CHI[chi_gio_index]) {
                         // Trường hợp trực sử nhập trung cung mà trung cung thì không có chứa Bát môn
                         // => Trực sử chuyển vào cung Khôn (2) - Tử môn
-                        truc_su := if (is_trung_cung) CUNG.KHON_THO else index;
+                        truc_su := if (is_trung_cung) _trung_cung_process() else index;
                         found := true;
                     };
                 };
@@ -890,13 +962,11 @@ module {
         private func arrange_palaces() {
             let don_cuc : Int = chart_data.don_cuc_so - 1;
             let am_duong_don = chart_data.am_duong_don.0;
-            let nghi_hidden_giap = chart_data.luc_nghi;
-            let thien_can_gio = THIEN_CAN[chart_data.can_gio_index];
+
+            _clearInformation();
 
             let palaces = _don_giap_ky_mon(don_cuc, am_duong_don,
-                                            nghi_hidden_giap,
-                                            thien_can_gio,
-                                            chart_data.chi_tuan_dau_index,
+                                            chart_data.can_gio_index,
                                             chart_data.chi_gio_index);
 
             chart_data := { 
@@ -909,6 +979,14 @@ module {
             chart_data := {
                         chart_data with
                         information = Array.flatten([chart_data.information, data]);
+                    };
+        };
+
+        func _clearInformation() {
+            // clear information
+            chart_data := {
+                        chart_data with
+                        information = [];
                     };
         };
 
