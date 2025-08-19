@@ -46,6 +46,51 @@ module {
 
     // Sorted by degrees for easier lookup
     // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
+
+    /***
+        Tiết Khí .
+        Khi tính xem Can Chi ngày thuộc Thượng Trung Hạ Nguyên của Tiết Khí thì chỉ lấy Phù
+        Đầu mà tính, không phải lấy Tuần Đầu. Dĩ nhiên có rất nhiều Tuần Đầu của Can Chi củng
+        chính là Phù Đầu, trường hợp này chính là 5 ngày đầu của một tuần Giáp (tại chưa tới Kỷ,
+        nên Tuần Đầu Giáp củng chính là Phù Đầu). 5 ngày sau của tuần Giáp thì có can Kỷ là Phù
+        Đầu.
+        Ta biết trái đất xoay quanh mặt trời, 1 vòng 360 độ là 1 năm. Đem 360 / 24 = 15 độ.
+        Cho nên mỗi tiết khí là 15 kinh độ mặt trời (Sun Longitude)
+        Tiết khí căn cứ vào kinh độ của mặt trời cho nên các điểm móc này không thay đổi, tức là tiết
+        Lập Xuân thì lúc nào củng là 315 kinh độ mặt trời.
+        Tiết khí âm lịch bắt đầu từ tiết Đông Chí.
+        Dưới đây là bản liệt kê tiết khí, kinh độ mặt trời, và các ngày Dương Lịch mà tiết khí thường
+        bắt đầu.
+        Đông Chí (Winter Solstice), 270 độ, 22 Tháng 12 DL
+        Tiểu Hàn, 285 độ, 6 Tháng 1 DL
+        Đại Hàn, 300 độ, 10 Tháng 1 DL
+        Lập Xuân, 315 độ, 4 Tháng 2 DL
+        Vũ Thũy, 330 độ, 19 Tháng 2 DL
+        Kinh Chập 345 độ, 6 Tháng 3 DL
+        Xuân Phân (Spring Equinox), 0 độ, 21 Tháng 3
+        Thanh Minh, 15 độ, 5 Tháng 4 DL
+        Cốc Vũ, 30 độ, 20 Tháng 4 DL
+        Lập Hạ, 45 độ, 6 Tháng 5 DL
+        Tiểu Mãn, 60 độ, 21 Tháng 5 DL
+        Mang Chủng, 75 độ, 6 Tháng 6 DL
+        Hạ Chí (Summer Solstice), 90 độ, 21 Tháng 6 DL
+        Tiểu Thử, 105 độ, 7 Tháng 7 DL
+        Đại Thử, 120 độ, 23 Tháng 7 DL
+        Lập Thu, 135 độ, 8 Tháng 8 DL
+        Xử Thử, 150 độ, 23 Tháng 8 DL
+        Bạch Lộ, 165 độ, 8 Tháng 9 DL
+        Thu Phân (Autum Equinox), 180 độ, 23 Tháng 9 DL
+        Hàn Lộ, 195 độ, 8 Tháng 10 DL
+        Sương Giáng, 210 độ, 24 Tháng 10 DL
+        Lập Đông, 225 độ, 8 Tháng 11 DL
+        Tiểu Tuyết, 240 độ, 22 Tháng 11 DL
+        Đại Tuyết, 255 độ, 7 Tháng 12 DL
+        Tại sao điểm Xuân Phân lại cho là 0 độ?
+        Điểm Xuân Phân chính là điểm giao nhau của vòng Hoàng Đạo và Xích Đạo.
+        Thật ra 24 Tiết Khí, bao gồm 12 Tiết và 12 Khí (còn gọi là Trung Khí, tức khí giữa hai tiết).
+        Lấy Lập Xuân là mốc của Tiết, ta thấy rằng các kinh độ mặt trời có đuôi 5 đều là Tiết và các
+        kinh độ có đuôi 0 đều là Khí hay Trung Khí.
+    ***/
     let SOLAR_TERMS : [(Text, Nat, [Nat])] = [
         ("Xuân Phân", 0, [3, 9, 6]),
         ("Thanh Minh", 15, [4, 1, 7]),
