@@ -1,9 +1,3 @@
-// testing :
-// Ngày 17
-// Tháng : 1-12
-// Năm : 2021 & 2025
-// Giờ 11:00
-
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Float "mo:base/Float";
@@ -17,6 +11,84 @@ import HashMap "mo:base/HashMap";
 import Hash "mo:base/Hash";
 
 module {
+
+    // --- Constants ---
+
+    // This is the order for displaying the 3x3 grid, starting from top-left.
+    let DISPLAY_ORDER : [Nat] = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+    
+    // Basic Astrological Data
+    let THIEN_CAN : [Text] = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
+    let DIA_CHI : [Text] = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    let DOORS : [(Nat, Text)] = [(1, "Hưu"), 
+                                    (8, "Sinh"), 
+                                    (3, "Thương"), 
+                                    (4, "Đỗ"), 
+                                    (9, "Cảnh"), 
+                                    (2, "Tử"), 
+                                    (7, "Kinh"), 
+                                    (6, "Khai")];
+    let GODS : [Text] = ["Trực Phù", "Đằng Xà", "Thái Âm", "Lục Hợp", "Bạch Hổ", "Huyền Vũ", "Cửu Địa", "Cửu Thiên"];
+    let STARS : [(Nat, Text)] = [(1,"Thiên Bồng"),
+                                (8, "Thiên Nhậm"),
+                                (3, "Thiên Xung"),
+                                (4, "Thiên Phụ"),
+                                (9, "Thiên Anh"),
+                                (2, "Thiên Nhuế"),
+                                (7, "Thiên Trụ"),
+                                (6, "Thiên Tâm"),
+                                (5, "Thiên Cầm")];
+    
+    let STAR_ORIGINAL_PALACE : [(Text, Nat)] = [
+        ("Thiên Bồng", 1), ("Thiên Nhuế", 2), ("Thiên Xung", 3), ("Thiên Phụ", 4),
+        ("Thiên Cầm", 5), ("Thiên Tâm", 6), ("Thiên Trụ", 7), ("Thiên Nhậm", 8), ("Thiên Anh", 9)
+    ];
+
+    // Sorted by degrees for easier lookup
+    // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
+    let SOLAR_TERMS : [(Text, Nat, [Nat])] = [
+        ("Xuân Phân", 0, [3, 9, 6]),
+        ("Thanh Minh", 15, [4, 1, 7]),
+        ("Cốc Vũ", 30, [5, 2, 8]),
+        ("Lập Hạ", 45, [4, 1, 7]),
+        ("Tiểu Mãn", 60, [5, 2, 8]),
+        ("Mang Chủng", 75, [6, 3, 9]),// Hết Dương độn - idx 5
+        ("Hạ Chí", 90, [9, 3, 6]), // Âm Độn - idx 6
+        ("Tiểu Thử", 105, [8, 2, 5]),
+        ("Đại Thử", 120, [7, 1, 4]),
+        ("Lập Thu", 135, [2, 5, 8]),
+        ("Xử Thử", 150, [1, 4, 7]),
+        ("Bạch Lộ", 165, [9, 3, 6]),
+        ("Thu Phân", 180, [7, 1, 4]),
+        ("Hàn Lộ", 195, [6, 9 ,3]),
+        ("Sương Giáng", 210, [5, 8, 2]),
+        ("Lập Đông", 225, [6, 9, 3]),
+        ("Tiểu Tuyết", 240, [5, 8, 2]),
+        ("Đại Tuyết", 255, [4, 7 , 1]), // Hết Âm độn - idx 17
+        ("Đông Chí", 270, [1, 7, 4]), // Dương Độn - idx 18
+        ("Tiểu Hàn", 285, [2, 8, 5]),
+        ("Đại Hàn", 300, [3, 9, 6]),
+        ("Lập Xuân", 315, [8, 5, 2]),
+        ("Vũ Thủy", 330, [9, 6, 3]),
+        ("Kinh Trập", 345, [1, 7, 4])
+    ];
+    
+    let PALACE_NAMES : [(Nat, Text)] = [
+        (1, "Khảm"), (2, "Khôn"), (3, "Chấn"), (4, "Tốn"), 
+        (5, "Trung"), (6, "Càn"), (7, "Đoài"), (8, "Cấn"), (9, "Ly")
+    ];
+
+    let CUNG = {
+        CAN_KIM = 5;
+        KHAM_THUY = 0;
+        CAN_THO = 7;
+        CHAN_MOC = 2;
+        TRUNG = 4;
+        TON_MOC = 3;
+        LY_HOA = 8;
+        KHON_THO = 1;
+        DOAI_KIM = 6;
+    };
     // -------------------------------------------------------------
     // PUBLIC TYPES
     // -------------------------------------------------------------
@@ -52,20 +124,6 @@ module {
         var is_center : Bool;
     };
 
-    func _new_palace() : PalaceX {
-        return  {
-            var cung_id : Nat = 0;
-            var cung_name : Text = "";
-            var thien_can_dia_ban : Text = "";
-            var thien_can_thien_ban : Text = "";
-            var chi : Text = "";
-            var cuu_tinh : Text = "";
-            var bat_mon : Text = "";
-            var bat_than : Text = "";
-            var is_center : Bool = false;
-        };
-    };
-
     public type ChartData = {
         can_nam_index : Nat;
         chi_nam_index : Nat;
@@ -89,6 +147,20 @@ module {
         palaces : [Palace];
         luc_nghi : Text; // The leading stem of the 10-day cycle (旬首)
         information : [Text];
+    };
+
+    func _new_palace() : PalaceX {
+        return  {
+            var cung_id : Nat = 0;
+            var cung_name : Text = "";
+            var thien_can_dia_ban : Text = "";
+            var thien_can_thien_ban : Text = "";
+            var chi : Text = "";
+            var cuu_tinh : Text = "";
+            var bat_mon : Text = "";
+            var bat_than : Text = "";
+            var is_center : Bool = false;
+        };
     };
     
     private func move(max : Nat, s : Nat, step : Int) : Nat {
@@ -138,74 +210,78 @@ module {
         };
     };
 
-    
-    let CELL_WIDTH = 30;
-    // Hàm tìm Palace theo number
-    func findPalace(palaces : [Palace], num : Nat) : Palace {
-        switch (Array.find<Palace>(palaces, func (p) { p.number == num })) {
-            case (?p) p;
-            case null { Debug.trap("Invalid data") }; // Không bao giờ xảy ra với dữ liệu đã cho
-        }
-    };
-    
-    // Định nghĩa các trường cần hiển thị theo thứ tự
-    let fields : [(Text, (Palace) -> Text)] = [
-        ("", func (p: Palace) : Text { p.name # " (" # Nat.toText(p.number + 1) # ")" }),
-        ("", func (p: Palace) : Text { "[" # p.stem_heaven # "] - " # p.stem_earth }),
-        ("", func (p: Palace) : Text { p.star }),
-        ("", func (p: Palace) : Text { p.door }),
-        ("", func (p: Palace) : Text { p.god })
-        // Thêm trường mới ở đây
-    ];
+    public class KyMonTranDo(palaces: [Palace]) {
 
-    // Định nghĩa layout hậu thiên bát quái đồ
-    let layout : [[Nat]] = [
-        [3, 8, 1],
-        [2, 4, 6],
-        [7, 0, 5]
-    ];
-
-    func createHorizontalLine() : Text {
-        "+" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "+\n"
-    };
-
-    func formatCell(content: Text) : Text {
-        let padding = (CELL_WIDTH - Text.size(content)) / 2;
-        let leftPad = Text.join("" ,Array.tabulate<Text>(padding, func _ = ".").vals());
-        let rightPad = Text.join("" ,Array.tabulate<Text>(CELL_WIDTH - padding - Text.size(content), func _ = ".").vals());
-        leftPad # content # rightPad
-    };
-
-    func createRow(palaces: [Palace], rowIds : [Nat], fieldIndex: Nat) : Text {
-        var row = "|";
-        for (num in rowIds.vals()) {
-            let p = findPalace(palaces, num);
-            let content = if (num == 4 and fieldIndex > 1) "" 
-                        else fields[fieldIndex].1(p);
-            row := row # formatCell(content) # "|";
+        let CELL_WIDTH = 30;
+        // Hàm tìm Palace theo number
+        func findPalace(num : Nat) : Palace {
+            switch (Array.find<Palace>(palaces, func (p) { p.number == num })) {
+                case (?p) p;
+                case null { Debug.trap("Invalid data") }; // Không bao giờ xảy ra với dữ liệu đã cho
+            }
         };
-        row # "\n"
-    };
-
-    func createTable(palaces: [Palace]) : Text {
-        var output = createHorizontalLine();
         
-        for (row in layout.vals()) {
-            for (fieldIndex in Iter.range(0, fields.size() - 1)) {
-                output := output # createRow(palaces, row, fieldIndex);
+        // Định nghĩa các trường cần hiển thị theo thứ tự
+        let fields : [(Text, (Palace) -> Text)] = [
+            ("", func (p: Palace) : Text { p.name # " (" # Nat.toText(p.number + 1) # ")" }),
+            ("", func (p: Palace) : Text { "[" # p.stem_heaven # "] - " # p.stem_earth }),
+            ("", func (p: Palace) : Text { p.star }),
+            ("", func (p: Palace) : Text { p.door }),
+            ("", func (p: Palace) : Text { p.god })
+            // Thêm trường mới ở đây
+        ];
+
+        // Định nghĩa layout hậu thiên bát quái đồ
+        let layout : [[Nat]] = [
+            [3, 8, 1],
+            [2, 4, 6],
+            [7, 0, 5]
+        ];
+
+        func createHorizontalLine() : Text {
+            "+" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "+\n"
+        };
+
+        func formatCell(content: Text) : Text {
+            let padding = (CELL_WIDTH - Text.size(content)) / 2;
+            let leftPad = Text.join("" ,Array.tabulate<Text>(padding, func _ = ".").vals());
+            let rightPad = Text.join("" ,Array.tabulate<Text>(CELL_WIDTH - padding - Text.size(content), func _ = ".").vals());
+            leftPad # content # rightPad
+        };
+
+        func createRow(rowIds : [Nat], fieldIndex: Nat) : Text {
+            var row = "|";
+            for (num in rowIds.vals()) {
+                let p = findPalace(num);
+                let content = if (num == 4 and fieldIndex > 1) "" 
+                            else fields[fieldIndex].1(p);
+                row := row # formatCell(content) # "|";
             };
-            output := output # "|" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "|\n";
+            row # "\n"
         };
-        
-        output := output # createHorizontalLine();
-        output
-    };
 
+        public func createTable() : Text {
+            var output = createHorizontalLine();
+            
+            for (row in layout.vals()) {
+                for (fieldIndex in Iter.range(0, fields.size() - 1)) {
+                    output := output # createRow(row, fieldIndex);
+                };
+                output := output # "|" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "|\n";
+            };
+            
+            output := output # createHorizontalLine();
+            output
+        };
+
+    };
+    
+    
     // -------------------------------------------------------------
     // QIMEN CHART CLASS
     // -------------------------------------------------------------
 
-    public class QimenChart() {
+    public class KyMonDonGiap() {
 
         // -------------------------------------------------------------
         // HELPER FUNCTIONS
@@ -244,84 +320,6 @@ module {
                 palaces = create_empty_palaces();
                 luc_nghi = ""; information = [];
             };
-        };
-
-        // --- Constants ---
-
-        // This is the order for displaying the 3x3 grid, starting from top-left.
-        let DISPLAY_ORDER : [Nat] = [4, 9, 2, 3, 5, 7, 8, 1, 6];
-        
-        // Basic Astrological Data
-        let THIEN_CAN : [Text] = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
-        let DIA_CHI : [Text] = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
-        let DOORS : [(Nat, Text)] = [(1, "Hưu"), 
-                                     (8, "Sinh"), 
-                                     (3, "Thương"), 
-                                     (4, "Đỗ"), 
-                                     (9, "Cảnh"), 
-                                     (2, "Tử"), 
-                                     (7, "Kinh"), 
-                                     (6, "Khai")];
-        let GODS : [Text] = ["Trực Phù", "Đằng Xà", "Thái Âm", "Lục Hợp", "Bạch Hổ", "Huyền Vũ", "Cửu Địa", "Cửu Thiên"];
-        let STARS : [(Nat, Text)] = [(1,"Thiên Bồng"),
-                                    (8, "Thiên Nhậm"),
-                                    (3, "Thiên Xung"),
-                                    (4, "Thiên Phụ"),
-                                    (9, "Thiên Anh"),
-                                    (2, "Thiên Nhuế"),
-                                    (7, "Thiên Trụ"),
-                                    (6, "Thiên Tâm"),
-                                    (5, "Thiên Cầm")];
-        
-        let STAR_ORIGINAL_PALACE : [(Text, Nat)] = [
-            ("Thiên Bồng", 1), ("Thiên Nhuế", 2), ("Thiên Xung", 3), ("Thiên Phụ", 4),
-            ("Thiên Cầm", 5), ("Thiên Tâm", 6), ("Thiên Trụ", 7), ("Thiên Nhậm", 8), ("Thiên Anh", 9)
-        ];
-
-        // Sorted by degrees for easier lookup
-        // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
-        let SOLAR_TERMS : [(Text, Nat, [Nat])] = [
-            ("Xuân Phân", 0, [3, 9, 6]),
-            ("Thanh Minh", 15, [4, 1, 7]),
-            ("Cốc Vũ", 30, [5, 2, 8]),
-            ("Lập Hạ", 45, [4, 1, 7]),
-            ("Tiểu Mãn", 60, [5, 2, 8]),
-            ("Mang Chủng", 75, [6, 3, 9]),// Hết Dương độn - idx 5
-            ("Hạ Chí", 90, [9, 3, 6]), // Âm Độn - idx 6
-            ("Tiểu Thử", 105, [8, 2, 5]),
-            ("Đại Thử", 120, [7, 1, 4]),
-            ("Lập Thu", 135, [2, 5, 8]),
-            ("Xử Thử", 150, [1, 4, 7]),
-            ("Bạch Lộ", 165, [9, 3, 6]),
-            ("Thu Phân", 180, [7, 1, 4]),
-            ("Hàn Lộ", 195, [6, 9 ,3]),
-            ("Sương Giáng", 210, [5, 8, 2]),
-            ("Lập Đông", 225, [6, 9, 3]),
-            ("Tiểu Tuyết", 240, [5, 8, 2]),
-            ("Đại Tuyết", 255, [4, 7 , 1]), // Hết Âm độn - idx 17
-            ("Đông Chí", 270, [1, 7, 4]), // Dương Độn - idx 18
-            ("Tiểu Hàn", 285, [2, 8, 5]),
-            ("Đại Hàn", 300, [3, 9, 6]),
-            ("Lập Xuân", 315, [8, 5, 2]),
-            ("Vũ Thủy", 330, [9, 6, 3]),
-            ("Kinh Trập", 345, [1, 7, 4])
-        ];
-        
-        let PALACE_NAMES : [(Nat, Text)] = [
-            (1, "Khảm"), (2, "Khôn"), (3, "Chấn"), (4, "Tốn"), 
-            (5, "Trung"), (6, "Càn"), (7, "Đoài"), (8, "Cấn"), (9, "Ly")
-        ];
-
-        let CUNG = {
-            CAN_KIM = 5;
-            KHAM_THUY = 0;
-            CAN_THO = 7;
-            CHAN_MOC = 2;
-            TRUNG = 4;
-            TON_MOC = 3;
-            LY_HOA = 8;
-            KHON_THO = 1;
-            DOAI_KIM = 6;
         };
 
         // --- Class State ---
@@ -426,7 +424,8 @@ module {
             
             for (log in chart_data.information.vals()) info.add(log);
 
-            let bat_quai_do_3x3 = createTable(chart_data.palaces);
+            let ky_mon_tran = KyMonTranDo(chart_data.palaces);
+            let bat_quai_do_3x3 = ky_mon_tran.createTable();
             info.add(bat_quai_do_3x3);
 
             Text.join("\n-------------\n", info.vals());
@@ -711,10 +710,10 @@ module {
                 switch (don_giap_ban.get(can_cung)) {
                     case (?palace) {
                         palace.cuu_tinh := STARS[star_start_index].1;
-                        if (star_start_index + 1 == 2) {
-                            // Nếu là Thiên Nhuế thì Thiên Cầm cùng cung
-                            _addInfomation(["Thiên Cầm -> " # palace.cung_name]);
-                        };
+                        // if (star_start_index + 1 == 2) {
+                        //     // Nếu là Thiên Nhuế thì Thiên Cầm cùng cung
+                        //     _addInfomation(["Thiên Cầm -> " # palace.cung_name]);
+                        // };
                         star_start_index := move(7, star_start_index, 1);
                     };
                     case (null) ();
