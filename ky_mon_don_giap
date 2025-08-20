@@ -1,3 +1,16 @@
+/*******************************************************************
+* Copyright         : 2025 nirvana369
+* File Name         : utils.mo
+* Description       : Utilities
+*                    
+* Revision History  :
+* Date				Author    		Comments
+* ---------------------------------------------------------------------------
+* 08/08/2025		nirvana369 		implement
+* 20/08/2025 Research => Định nghĩa tiết khí : Lập đông, hàn lộ, tiểu hàn
+* 20/08/2025 BUG : Tính tiết khí ngày : 20/1/2025 10h36 Đại Hàn -> tính sai Tiểu Hàn 
+******************************************************************/
+
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Float "mo:base/Float";
@@ -548,7 +561,7 @@ module {
             chart_data := determine_dun_ju(chart_data);
 
             // 5. Find Void Branches (Không Vong)
-            // chart_data := find_khong_vong(chart_data);
+            chart_data := find_khong_vong(chart_data);
             
             // 7. Arrange all elements on the chart
             chart_data := arrange_palaces(chart_data);
@@ -656,14 +669,28 @@ module {
                 don_cuc_so = cuc;
             };
         };
+
+        func _khong_vong(t : GZTimeIndex) : (Nat, Nat) {
+            let td = _tuan_dau(t);
+            let chi_kv_1 = move(11, td.chi, -1);
+            let chi_kv_2 = move(11, chi_kv_1, -1);
+            (chi_kv_1, chi_kv_2);
+        };
         
         private func find_khong_vong(chart : ChartData) : ChartData {
-            let xun_shou_zhi_idx = (chart.ngay.chi - chart.ngay.can + 12) % 12;
-            let void1_idx = (xun_shou_zhi_idx + 10) % 12;
-            let void2_idx = (xun_shou_zhi_idx + 11) % 12;
+            let kv_thang = _khong_vong(chart.thang);
+            var kv = "Không vong:\n -Tháng: " # DIA_CHI[kv_thang.0] # ", " #  DIA_CHI[kv_thang.1];
+            
+            let kv_ngay = _khong_vong(chart.ngay);
+            kv #= "\n -Ngày: " # DIA_CHI[kv_ngay.0] # ", "  #  DIA_CHI[kv_ngay.1];
+            
+            let kv_gio = _khong_vong(chart.gio);
+            kv #= "\n -Giờ: " # DIA_CHI[kv_gio.0] # ", "  #  DIA_CHI[kv_gio.1];
+            
+            _addInfomation([kv]);
             return { 
                 chart with 
-                khong_vong = [DIA_CHI[void1_idx], DIA_CHI[void2_idx]] 
+                khong_vong = [DIA_CHI[kv_gio.0], DIA_CHI[kv_gio.1]] 
             };
         };
 
