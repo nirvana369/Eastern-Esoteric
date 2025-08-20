@@ -385,7 +385,7 @@ module {
 
         var trungCungMode : TRUNG_CUNG_MODE = #General;
 
-        var isDuongDon : Bool = false;
+        var amDuongDon : Int = 0;
         
         let log = Buffer.Buffer<Text>(0);
 
@@ -394,7 +394,7 @@ module {
         };
 
         private func setAmDuongDon(mode : Int) {
-            isDuongDon := mode > 0;
+            amDuongDon := mode;
         };
         // -------------------------------------------------------------
         // HELPER FUNCTIONS
@@ -539,6 +539,8 @@ module {
             chart_data := tim_tuan_dau(chart_data);
 
             chart_data := tim_phu_dau(chart_data);
+
+            chart_data := find_luc_nghi(chart_data);
             
             chart_data := tim_nguyen(chart_data);
 
@@ -546,7 +548,7 @@ module {
             chart_data := determine_dun_ju(chart_data);
 
             // 5. Find Void Branches (Không Vong)
-            chart_data := find_khong_vong(chart_data);
+            // chart_data := find_khong_vong(chart_data);
             
             // 7. Arrange all elements on the chart
             chart_data := arrange_palaces(chart_data);
@@ -707,10 +709,9 @@ module {
 
             let don_cuc : Int = cuc - 1;
 
-            setAmDuongDon(don_cuc);
+            setAmDuongDon(am_duong_don);
 
             let palaces = _don_giap_ky_mon(don_cuc,
-                                            am_duong_don, 
                                             _newGZTime(can_gio_index, chi_gio_index));
 
             let lap_tran_ky_mon = KyMonTranDo(palaces);
@@ -721,13 +722,9 @@ module {
         };
 
         private func _don_giap_ky_mon(don_cuc : Int,
-                                        am_duong_don : Int,
                                         gio : GZTimeIndex)  : [Palace] {
 
-            let tuan_dau = _tuan_dau(gio);
-            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
-            let thien_can_gio = THIEN_CAN[gio.can];
-            let direction : Int = am_duong_don; // Dương đi thuận - Âm đi nghịch;
+            let direction : Int = amDuongDon; // Dương đi thuận - Âm đi nghịch;
 
             let luc_nghi_map = ["Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý", "Đinh", "Bính", "Ất"];
             
@@ -752,13 +749,13 @@ module {
                 luc_nghi_start := move(8, luc_nghi_start, 1);
             });
 
-            _an_thien_ban(don_giap_ban, mapping_can_cung, nghi_an_giap, thien_can_gio);
+            _an_thien_ban(don_giap_ban, mapping_can_cung, gio);
 
-            let truc_phu = truc_phu__an_cuu_tinh(don_giap_ban, mapping_can_cung, nghi_an_giap, thien_can_gio);
+            let truc_phu = truc_phu__an_cuu_tinh(don_giap_ban, mapping_can_cung, gio);
 
-            truc_su__an_bat_mon(don_giap_ban, mapping_can_cung, nghi_an_giap, tuan_dau.chi, gio.chi, am_duong_don);
+            truc_su__an_bat_mon(don_giap_ban, mapping_can_cung, gio);
             
-            _an_bat_than(don_giap_ban, mapping_can_cung, thien_can_gio, truc_phu, am_duong_don);
+            _an_bat_than(don_giap_ban, mapping_can_cung, gio, truc_phu);
 
             var final_palaces = Buffer.Buffer<Palace>(9);
             for ((can, p) in don_giap_ban.entries()) {
@@ -773,7 +770,7 @@ module {
                 case (#ThauDiaKyMon) {
                     // Theo Thấu Địa Kỳ Môn thì Dương Độn Thiên Cầm ký cung Khôn (2), Âm Độn ký cung Cấn (8)
                     // if (chart_data.am_duong_don == "Dương Độn") (CUNG.KHON) else (CUNG.CAN);
-                    if (isDuongDon) { // chart_data.am_duong_don.0 > 0
+                    if (amDuongDon > 0) { // chart_data.am_duong_don.0 > 0
                         return CUNG.KHON_THO
                     };
                     return CUNG.CAN_THO;
@@ -785,10 +782,13 @@ module {
 
         private func _an_thien_ban(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
-                                            luc_nghi_hidden_tuan_dau_giap : Text,
-                                            thien_can_gio : Text) {
+                                            gio : GZTimeIndex) {
             
-            var nghi_truc_phu = switch (don_giap_ban.get(luc_nghi_hidden_tuan_dau_giap)) {
+            let tuan_dau = _tuan_dau(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+            let thien_can_gio = THIEN_CAN[gio.can];
+
+            var nghi_truc_phu = switch (don_giap_ban.get(nghi_an_giap)) {
                 case (?p) {
                     if (p.is_center) {
                         _trung_cung_process();
@@ -826,15 +826,17 @@ module {
 
         private func truc_phu__an_cuu_tinh(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
-                                            luc_nghi_hidden_tuan_dau_giap : Text,
-                                            thien_can_gio : Text) : Nat {
+                                            gio : GZTimeIndex) : Nat {
+            let tuan_dau = _tuan_dau(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+            let thien_can_gio = THIEN_CAN[gio.can];
 
             let stars = HashMap.fromIter<Nat, Text>(STARS.vals(), STARS.size(), Nat.equal, Hash.hash);
             let star_pos = func (idx : Nat) : Text = Option.get<Text>(stars.get(idx + 1), "");
 
             var cuu_tinh = "";
             // An cửu tinh theo tuần đầu
-            var nghi_truc_phu = switch (don_giap_ban.get(luc_nghi_hidden_tuan_dau_giap)) {
+            var nghi_truc_phu = switch (don_giap_ban.get(nghi_an_giap)) {
                 case (?p) {
                     if (p.is_center) {
                         cuu_tinh := "Thiên Cầm -> cung ";
@@ -894,11 +896,12 @@ module {
 
         private func truc_su__an_bat_mon(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
-                                            luc_nghi_hidden_tuan_dau_giap : Text,
-                                            chi_tuan_dau_index : Nat,
-                                            chi_gio_index : Nat,
-                                            direction : Int) {
-            
+                                            gio : GZTimeIndex) {
+
+            let direction : Int = amDuongDon; // Dương đi thuận - Âm đi nghịch;
+            let tuan_dau = _tuan_dau(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+
             let doors = HashMap.fromIter<Nat, Text>(DOORS.vals(), DOORS.size(), Nat.equal, Hash.hash);
             let door_pos = func (idx : Nat) : Text = Option.get<Text>(doors.get(idx + 1), "");
             
@@ -907,7 +910,7 @@ module {
             // tìm vị trí Bát môn đầu tiên chuyển về Thiên bàn
             // nếu Nghi ẩn Giáp tuần đầu ở Trung cung => không có bát môn => sẽ lấy theo trực phù
             // Tức ở Trung cung nếu Dương độn thì lấy Khôn (Tử Môn), Âm độn thì lấy Cấn (Sinh môn)
-            var nghi_truc_su = switch (don_giap_ban.get(luc_nghi_hidden_tuan_dau_giap)) {
+            var nghi_truc_su = switch (don_giap_ban.get(nghi_an_giap)) {
                 case (?p) {
                     if (p.is_center) {
                         bat_mon := "Trung cung -> cung ";
@@ -932,11 +935,11 @@ module {
             _addInfomation(["chart.direct_door => " # door_pos(nghi_truc_su)]);
 
             var truc_su = nghi_truc_su;
-            var chi_tuan_dau_idx = chi_tuan_dau_index;
+            var chi_tuan_dau_idx = tuan_dau.chi;
             // Tìm Trực Sử - Dương độn đễm xuôi, Âm độn đếm ngược đi theo Hậu thiên bát quái
             // Từ Nghi Ẩn Giáp đếm Chi cho đến Chi Thời gia
             // Nếu Nghi ẩn Giáp ở tại trung cung thì vẫn đếm từ trung cung
-            var vi_tri_nghi_tuan_dau = switch (don_giap_ban.get(luc_nghi_hidden_tuan_dau_giap)) {
+            var vi_tri_nghi_tuan_dau = switch (don_giap_ban.get(nghi_an_giap)) {
                 case (?p) p.cung_id;
                 case (null) 0;
             };
@@ -953,7 +956,7 @@ module {
                                         };
 
                     // Đếm chi chứ không đếm can !! Đếm từ Chi tuần đầu đến chi của Thời chi
-                    if (not found and DIA_CHI[chi_tuan_dau_idx] == DIA_CHI[chi_gio_index]) {
+                    if (not found and DIA_CHI[chi_tuan_dau_idx] == DIA_CHI[gio.chi]) {
                         // Trường hợp trực sử nhập trung cung mà trung cung thì không có chứa Bát môn
                         // => Trực sử chuyển vào cung Khôn (2) - Tử môn
                         truc_su := if (is_trung_cung) _trung_cung_process() else index;
@@ -981,9 +984,10 @@ module {
 
         private func _an_bat_than(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                     mapping_can_cung : HashMap.HashMap<Nat, Text>,
-                                    thien_can_gio : Text,
-                                    truc_phu : Nat,
-                                    direction : Int) {
+                                    gio : GZTimeIndex,
+                                    truc_phu : Nat) {
+            let direction : Int = amDuongDon; // Dương đi thuận - Âm đi nghịch;
+            let thien_can_gio = THIEN_CAN[gio.can];
             // An Bát thần
             var bat_than_idx = 0;
             var tieu_truc_phu = switch (don_giap_ban.get(thien_can_gio)) {
@@ -1015,12 +1019,11 @@ module {
             let don_cuc : Int = chart.don_cuc_so - 1;
             let am_duong_don = chart.am_duong_don.0;
             
-            setAmDuongDon(don_cuc);
+            setAmDuongDon(am_duong_don);
             
             _clearInformation();
 
             let palaces = _don_giap_ky_mon(don_cuc,
-                                            am_duong_don, 
                                             chart.gio);
 
             chart := { 
@@ -1036,7 +1039,6 @@ module {
         };
 
         func _clearInformation() {
-            // clear information
             log.clear();
         };
 
