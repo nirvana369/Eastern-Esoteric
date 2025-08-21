@@ -1,14 +1,14 @@
 /*******************************************************************
 * Copyright         : 2025 nirvana369
-* File Name         : utils.mo
-* Description       : Utilities
+* File Name         : Kỳ Môn Độn Giáp
+* Description       : Kỳ Môn Độn Giáp - Huyền học ứng dụng
 *                    
 * Revision History  :
 * Date				Author    		Comments
 * ---------------------------------------------------------------------------
 * 08/08/2025		nirvana369 		implement
-* 20/08/2025 Research => Định nghĩa tiết khí : Lập đông, hàn lộ, tiểu hàn
-* 20/08/2025 BUG : Tính tiết khí ngày : 20/1/2025 10h36 Đại Hàn -> tính sai Tiểu Hàn 
+* 20/08/2025 TODO : Research => Định nghĩa tiết khí : Lập đông, hàn lộ, tiểu hàn
+* 20/08/2025 TODO : BUG => Tính tiết khí ngày : 20/1/2025 10h36 Đại Hàn -> tính sai Tiểu Hàn 
 ******************************************************************/
 
 import Array "mo:base/Array";
@@ -41,6 +41,7 @@ module {
                                     (2, "Tử"), 
                                     (7, "Kinh"), 
                                     (6, "Khai")];
+                                    // Phù Xà Âm Hợp Hổ Vũ Địa Thiên
     let GODS : [Text] = ["Trực Phù", "Đằng Xà", "Thái Âm", "Lục Hợp", "Bạch Hổ", "Huyền Vũ", "Cửu Địa", "Cửu Thiên"];
     let STARS : [(Nat, Text)] = [(1,"Thiên Bồng"),
                                 (8, "Thiên Nhậm"),
@@ -248,8 +249,8 @@ module {
         thang : GZTimeIndex;
         ngay : GZTimeIndex;
         gio : GZTimeIndex;
-        tuan_dau : GZTimeIndex;
-        phu_dau : GZTimeIndex;
+        tuan_thu : GZTimeIndex; // Tuần Thủ
+        phu_dau : GZTimeIndex;  // Phù Đầu
         nghi_an_giap : Text;
         am_duong_don : (Int, Text);
         tiet_khi_index : Nat;
@@ -449,7 +450,7 @@ module {
                 thang = _newGZTime(0, 0);
                 ngay = _newGZTime(0, 0);
                 gio = _newGZTime(0, 0);
-                tuan_dau = _newGZTime(0, 0);
+                tuan_thu = _newGZTime(0, 0);
                 phu_dau = _newGZTime(0, 0);
                 nghi_an_giap = "";
                 am_duong_don = (0, ""); don_cuc_so = 0; khong_vong = [];
@@ -465,14 +466,15 @@ module {
         // PUBLIC METHODS
         // -------------------------------------------------------------
 
-        public func tim_tuan_dau(chart_data : ChartData) : ChartData {
+        public func tim_tuan_thu(chart_data : ChartData) : ChartData {
             return {
                 chart_data with
-                tuan_dau = _tuan_dau(chart_data.gio);
+                tuan_thu = _tuan_thu(chart_data.gio);
             };
         };
 
-        private func _tuan_dau(h : GZTimeIndex) : GZTimeIndex {
+        private func _tuan_thu(h : GZTimeIndex) : GZTimeIndex {
+            //  Tìm Tuần Thủ
             var can = h.can;
             var chi = h.chi;
             while (can != 0) {
@@ -490,6 +492,7 @@ module {
         };
         
         private func _phu_dau(d : GZTimeIndex) : GZTimeIndex {
+            // Tìm Phù Đầu
             var can = d.can;
             var chi = d.chi;
             if (can <= 4) {
@@ -508,8 +511,10 @@ module {
         };
 
         public func tim_nguyen(chart : ChartData) : ChartData {
-            
-            // Thượng - Trung - Hạ 
+            // Tìm Nguyên (Thượng - Trung - Hạ) dựa vào Phù đầu (Giáp/Kỷ) + Chi
+            // Nếu Địa Chi  thuộc tứ Chính => Thượng Nguyên
+            //      -       thuộc tứ Sinh => Trung Nguyên
+            //      -       thuộc tứ Mộ => Hạ Nguyên
             let nguyen_index = if (chart.phu_dau.chi % 3 == 0) {
                                 // tứ chính
                                 (0, "Thượng Nguyên");
@@ -549,7 +554,7 @@ module {
             // 3. Calculate Month Ganzhi (This must be after solar term)
             chart_data := calculate_month_ganzhi(chart_data);
 
-            chart_data := tim_tuan_dau(chart_data);
+            chart_data := tim_tuan_thu(chart_data);
 
             chart_data := tim_phu_dau(chart_data);
 
@@ -577,7 +582,7 @@ module {
             info.add("Tháng: " # THIEN_CAN[chart_data.thang.can] # " " # DIA_CHI[chart_data.thang.chi]);
             info.add("Ngày: " # THIEN_CAN[chart_data.ngay.can] # " " # DIA_CHI[chart_data.ngay.chi]);
             info.add("Giờ: " # THIEN_CAN[chart_data.gio.can] # " " # DIA_CHI[chart_data.gio.chi]);
-            info.add("Tuần đầu: " # THIEN_CAN[chart_data.tuan_dau.can] # " " # DIA_CHI[chart_data.tuan_dau.chi] # " - Lục Nghi: " # chart_data.nghi_an_giap);
+            info.add("Tuần đầu: " # THIEN_CAN[chart_data.tuan_thu.can] # " " # DIA_CHI[chart_data.tuan_thu.chi] # " - Lục Nghi: " # chart_data.nghi_an_giap);
             info.add("Phù đầu: " # THIEN_CAN[chart_data.phu_dau.can] # " " # DIA_CHI[chart_data.phu_dau.chi]);
 
             info.add("Tiết khí : " # SOLAR_TERMS[chart_data.tiet_khi_index].0 # " | Nguyên: " # chart_data.tam_nguyen.1 # " | " # chart_data.am_duong_don.1 # " | Cục: " # debug_show(chart_data.don_cuc_so));
@@ -593,6 +598,7 @@ module {
         };
 
         private func calculate_bazi(chart_data : ChartData) : ChartData {
+            // Tính Năm / Ngày / Giờ theo âm lịch (Thiên Can - Địa Chi)
             let date_time : DateTime = chart_data.date_time;
             let jd = calculate_julian_day(date_time);
 
@@ -618,6 +624,7 @@ module {
         };
         
         private func calculate_month_ganzhi(chart_data : ChartData) : ChartData {
+            // Tính Tháng theo âm lịch (Thiên Can - Địa Chi)
             let date_time = chart_data.date_time;
             let month_branch_map = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]; // Month 1 (Jan) -> Dần (idx 2) etc.
             let month_branch_idx = month_branch_map[(date_time.month - 1 + 12) % 12];
@@ -632,7 +639,9 @@ module {
         };
         
         private func find_solar_term_index(chart_data : ChartData) : ChartData {
+            // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
             let date_time = chart_data.date_time;
+            // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
             let sun_long = calculate_solar_longitude(date_time);
             
             // Find the solar term immediately before current position
@@ -652,6 +661,8 @@ module {
         };
         
         private func determine_dun_ju(chart : ChartData) : ChartData {
+            //  Xác định Âm/Dương độn và số Cục
+
             // Determine Dun type
             // Hạ Chí (idx 6) to Đại Tuyết (idx 17) -> Âm Độn
             // Đông Chí (idx 18) to Mang Chủng (idx 5) -> Dương Độn
@@ -660,7 +671,7 @@ module {
             } else {
                 (1, "Dương Độn"); // Yang Dun
             };
-
+            // tìm cục dựa vào tiết khí & nguyên (thượng/trung/hạ)
             let cuc = (SOLAR_TERMS[chart.tiet_khi_index].2)[chart.tam_nguyen.0];
 
             return { 
@@ -671,7 +682,8 @@ module {
         };
 
         func _khong_vong(t : GZTimeIndex) : (Nat, Nat) {
-            let td = _tuan_dau(t);
+            // Tìm không vong : Từ thời gia tìm tuần thủ, biết Giáp gì lấy 2 Chi trước giáp đó
+            let td = _tuan_thu(t);
             let chi_kv_1 = move(11, td.chi, -1);
             let chi_kv_2 = move(11, chi_kv_1, -1);
             (chi_kv_1, chi_kv_2);
@@ -697,13 +709,18 @@ module {
         private func find_luc_nghi(chart : ChartData) : ChartData {
             return {
                 chart with
-                nghi_an_giap = _nghi_hidden_giap(chart.tuan_dau);
+                nghi_an_giap = _nghi_hidden_giap(chart.tuan_thu);
             }
         };
 
-        private func _nghi_hidden_giap(tuan_dau : GZTimeIndex) : Text {
+        private func _nghi_hidden_giap(tuan_thu : GZTimeIndex) : Text {
+            // Xác định Nghi ẩn Giáp dựa vào chi của Tuần thủ : 
+            // Giáp :   Tý - Mậu
+            //          Tuất - Kỷ
+            //          Thân ...
+            //          ... 
             // Xun Shou is the first stem in the current 10-day cycle
-            let luc_nghi = switch(tuan_dau.chi) {
+            let luc_nghi = switch(tuan_thu.chi) {
                 case (0) "Mậu";  // Giáp Tý
                 case (10) "Kỷ";   // Giáp Tuất
                 case (8) "Canh"; // Giáp Thân
@@ -736,10 +753,9 @@ module {
 
             let don_cuc : Int = cuc - 1;
 
+            // Lập trận : có tổng cộng 1080 trận = 2 (âm/dương) * 9 (cục) * 60 (can chi/lục thập hoa giáp)
             setAmDuongDon(am_duong_don);
-
-            let palaces = _don_giap_ky_mon(don_cuc,
-                                            _newGZTime(can_gio_index, chi_gio_index));
+            let palaces = _don_giap_ky_mon(don_cuc, _newGZTime(can_gio_index, chi_gio_index));
 
             let lap_tran_ky_mon = KyMonTranDo(palaces);
             let data = lap_tran_ky_mon.lapTran();
@@ -811,8 +827,8 @@ module {
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
                                             gio : GZTimeIndex) {
             
-            let tuan_dau = _tuan_dau(gio);
-            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+            let tuan_thu = _tuan_thu(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_thu);
             let thien_can_gio = THIEN_CAN[gio.can];
 
             var nghi_truc_phu = switch (don_giap_ban.get(nghi_an_giap)) {
@@ -854,8 +870,8 @@ module {
         private func truc_phu__an_cuu_tinh(don_giap_ban : HashMap.HashMap<Text, PalaceX>,
                                             mapping_can_cung : HashMap.HashMap<Nat, Text>,
                                             gio : GZTimeIndex) : Nat {
-            let tuan_dau = _tuan_dau(gio);
-            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+            let tuan_thu = _tuan_thu(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_thu);
             let thien_can_gio = THIEN_CAN[gio.can];
 
             let stars = HashMap.fromIter<Nat, Text>(STARS.vals(), STARS.size(), Nat.equal, Hash.hash);
@@ -926,8 +942,8 @@ module {
                                             gio : GZTimeIndex) {
 
             let direction : Int = amDuongDon; // Dương đi thuận - Âm đi nghịch;
-            let tuan_dau = _tuan_dau(gio);
-            let nghi_an_giap = _nghi_hidden_giap(tuan_dau);
+            let tuan_thu = _tuan_thu(gio);
+            let nghi_an_giap = _nghi_hidden_giap(tuan_thu);
 
             let doors = HashMap.fromIter<Nat, Text>(DOORS.vals(), DOORS.size(), Nat.equal, Hash.hash);
             let door_pos = func (idx : Nat) : Text = Option.get<Text>(doors.get(idx + 1), "");
@@ -962,19 +978,19 @@ module {
             _addInfomation(["chart.direct_door => " # door_pos(nghi_truc_su)]);
 
             var truc_su = nghi_truc_su;
-            var chi_tuan_dau_idx = tuan_dau.chi;
+            var chi_tuan_thu_idx = tuan_thu.chi;
             // Tìm Trực Sử - Dương độn đễm xuôi, Âm độn đếm ngược đi theo Hậu thiên bát quái
             // Từ Nghi Ẩn Giáp đếm Chi cho đến Chi Thời gia
             // Nếu Nghi ẩn Giáp ở tại trung cung thì vẫn đếm từ trung cung
-            var vi_tri_nghi_tuan_dau = switch (don_giap_ban.get(nghi_an_giap)) {
+            var vi_tri_nghi_tuan_thu = switch (don_giap_ban.get(nghi_an_giap)) {
                 case (?p) p.cung_id;
                 case (null) 0;
             };
             var found = false;
-            hauThienBatQuaiMove(vi_tri_nghi_tuan_dau, direction, func (index) {
+            hauThienBatQuaiMove(vi_tri_nghi_tuan_thu, direction, func (index) {
                 
                 if (not found) {
-                    _addInfomation([DIA_CHI[chi_tuan_dau_idx]]);
+                    _addInfomation([DIA_CHI[chi_tuan_thu_idx]]);
 
                     let can_cung = Option.get(mapping_can_cung.get(index), "");
                     let is_trung_cung = switch (don_giap_ban.get(can_cung)) {
@@ -983,14 +999,14 @@ module {
                                         };
 
                     // Đếm chi chứ không đếm can !! Đếm từ Chi tuần đầu đến chi của Thời chi
-                    if (not found and DIA_CHI[chi_tuan_dau_idx] == DIA_CHI[gio.chi]) {
+                    if (not found and DIA_CHI[chi_tuan_thu_idx] == DIA_CHI[gio.chi]) {
                         // Trường hợp trực sử nhập trung cung mà trung cung thì không có chứa Bát môn
                         // => Trực sử chuyển vào cung Khôn (2) - Tử môn
                         truc_su := if (is_trung_cung) _trung_cung_process() else index;
                         found := true;
                     };
                 };
-                chi_tuan_dau_idx := move(11, chi_tuan_dau_idx, 1);
+                chi_tuan_thu_idx := move(11, chi_tuan_thu_idx, 1);
 
             });
 
