@@ -22,6 +22,8 @@ import Text "mo:base/Text";
 import Debug "mo:base/Debug";
 import HashMap "mo:base/HashMap";
 import Hash "mo:base/Hash";
+import LichHND "LichHND";
+import AmLich "AmLich";
 
 module {
     // --- Constants ---
@@ -62,7 +64,7 @@ module {
         #ThauDiaKyMon;
     };
 
-    type GZTimeIndex = {
+    public type GZTimeIndex = {
         can : Nat; // can - mapping with THIEN_CAN
         chi : Nat;  // chi - mapping with DIA_CHI
     };
@@ -437,9 +439,11 @@ module {
         return Float.floor(365.25 * (Float.fromInt(y) + 4716.0)) 
                 + Float.floor(30.6001 * (Float.fromInt(m) + 1.0)) 
                 + d + b - 1524.5;
+        
+        // return Float.fromInt(LichHND.jdFromDate(date.day, date.month, date.year));
     };
     
-    private func calculate_solar_longitude(date : DateTime) : Float {
+    private func calculate_solar_longitude(date : DateTime, time_zone : Float) : Float {
         let jd = calculate_julian_day(date);
         let T = (jd - 2451545.0) / 36525.0;
         
@@ -457,6 +461,8 @@ module {
                 
         let sun_long = L0 + C;
         return if (sun_long < 0.0) { sun_long + 360.0 } else { sun_long };
+        // return LichHND.SunLongitude(jd);
+        // return getSunLongitude(jd, time_zone);
     };
         
     private func _phu_dau(d : GZTimeIndex) : GZTimeIndex {
@@ -1011,7 +1017,7 @@ module {
             // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
             let date_time = chart_data.date_time;
             // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
-            let sun_long = calculate_solar_longitude(date_time);
+            let sun_long = calculate_solar_longitude(date_time, 7.0);
             
             // Find the solar term immediately before current position
             var current_term_index = 0;
@@ -1092,6 +1098,34 @@ module {
         public func get_chart() : ChartData {
             return chart_data;
         };
+
+        public func convert(dt : DateTime) : ({day : Int; month : Int; year : Int; isLeap : Int},
+                                                        {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
+                                                        {nam : Text; thang : Text; ngay : Text; gio : Text}) {
+            let (lunarDay, lunarMonth, lunarYear, lunarLeap) = AmLich.ngayThangNam(dt.day, dt.month, dt.year, true, 7);
+            let amLich = {
+                day = lunarDay;
+                month = lunarMonth;
+                year = lunarYear;
+                isLeap = lunarLeap;
+            };
+
+            let (canNam, chiNam, canThang, chiThang, canNgay, chiNgay, canGio, chiGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
+            let canChiIndex = {
+                nam = _newGZTime(canNam, chiNam);
+                thang = _newGZTime(canThang, chiThang);
+                ngay = _newGZTime(canNgay, chiNgay);
+                gio = _newGZTime(canGio, chiGio);
+            };
+
+            let canChi = {
+                nam = ("Năm: " # THIEN_CAN[canChiIndex.nam.can] # " " # DIA_CHI[canChiIndex.nam.chi]);
+                thang = ("Tháng: " # THIEN_CAN[canChiIndex.thang.can] # " " # DIA_CHI[canChiIndex.thang.chi]);
+                ngay = ("Ngày: " # THIEN_CAN[canChiIndex.ngay.can] # " " # DIA_CHI[canChiIndex.ngay.chi]);
+                gio = ("Giờ: " # THIEN_CAN[canChiIndex.gio.can] # " " # DIA_CHI[canChiIndex.gio.chi]);
+            };
+            return (amLich, canChiIndex, canChi);
+        };
     };
 
     public func KMDG_FROM_DATETIME(prompt : DateTime) : async (Text, ChartData) {
@@ -1108,4 +1142,10 @@ module {
         (chart);
     };
 
+    public func KMDG_AMLICH(prompt : DateTime) : async ({day : Int; month : Int; year : Int; isLeap : Int},
+                                                        {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
+                                                        {nam : Text; thang : Text; ngay : Text; gio : Text}) {
+        let qimen = KyMonDonGiap();
+        return qimen.convert(prompt);
+    };
 };
