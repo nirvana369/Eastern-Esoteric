@@ -470,7 +470,7 @@ module {
     private func _find_solar_term_index(mode : Nat, date_time : DateTime, time_zone : Float) : Nat {
         // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
         // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
-        let sun_long = calculate_solar_longitude(mode, date_time, 7.0);
+        let sun_long = calculate_solar_longitude(mode, date_time, time_zone);
         
         // Find the solar term immediately before current position
         var current_term_index = 0;
@@ -1148,7 +1148,7 @@ module {
             };
             let sun = {
                 sun_longitude_original = calculate_solar_longitude(0, dt, 7);
-                sun_longitude = _sun_longitude(dt, 7);
+                sun_longitude = calculate_solar_longitude(1, dt, 7);
                 sun_term_index = _find_solar_term_index(1, dt, 7);
                 sun_longitude_1 = _sun_longitude_1(dt);
             };
