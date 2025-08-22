@@ -1123,7 +1123,9 @@ module {
         public func convert(dt : DateTime) : ({day : Int; month : Int; year : Int; isLeap : Int},
                                                         {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
                                                         {nam : Text; thang : Text; ngay : Text; gio : Text},
-                                                        {sun_longitude_original: Float; sun_longitude : Float; sun_term_index : Nat; sun_longitude_1 : Float}) {
+                                                        {sun_longitude_original: Float; sun_term_index_original: Nat;
+                                                        sun_longitude : Float;
+                                                        sun_term_index : Nat; sun_longitude_1 : Float}) {
             let (lunarDay, lunarMonth, lunarYear, lunarLeap) = AmLich.ngayThangNam(dt.day, dt.month, dt.year, true, 7);
             let amLich = {
                 day = lunarDay;
@@ -1148,6 +1150,7 @@ module {
             };
             let sun = {
                 sun_longitude_original = calculate_solar_longitude(0, dt, 7);
+                sun_term_index_original = _find_solar_term_index(0, dt, 7);
                 sun_longitude = calculate_solar_longitude(1, dt, 7);
                 sun_term_index = _find_solar_term_index(1, dt, 7);
                 sun_longitude_1 = _sun_longitude_1(dt);
@@ -1174,7 +1177,9 @@ module {
     public func KMDG_AMLICH(prompt : DateTime) : async ({day : Int; month : Int; year : Int; isLeap : Int},
                                                         {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
                                                         {nam : Text; thang : Text; ngay : Text; gio : Text},
-                                                        {sun_longitude_original: Float; sun_longitude : Float; sun_term_index : Nat; sun_longitude_1 : Float}) {
+                                                        {sun_longitude_original: Float; sun_term_index_original: Nat;
+                                                        sun_longitude : Float;
+                                                        sun_term_index : Nat; sun_longitude_1 : Float}) {
         let qimen = KyMonDonGiap();
         return qimen.convert(prompt);
     };
