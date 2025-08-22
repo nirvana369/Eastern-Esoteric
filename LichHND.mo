@@ -62,7 +62,8 @@ module LunarConverter {
         L;
     };
     
-    public func getSunLongitude(jdn : Float, timeZone : Float) : Float {
+    public func getSunLongitudeIndex(jdn : Float, timeZone : Float) : Float {
+        // trả về index cung (0–11 hoặc 1–12).
         let T : Float = (jdn - 2451545.5 - timeZone / 24.0) / 36525.0;
         let T2 : Float = T * T;
         let dr : Float = PI / 180.0;
@@ -80,6 +81,35 @@ module LunarConverter {
         L := L - PI * 2.0 * (Float.floor(L / (PI * 2.0)));
         // Int.abs(Float.toInt(L / PI * 6.0));
         (L / PI * 6.0);
+    };
+
+    public func getSunLongitude(jdn : Float, timeZone : Float) : Float {
+        // dùng 2451545.5 và trừ thêm timeZone / 24.0 → nghĩa là tính theo Giờ địa phương (Local Apparent Solar Longitude), không phải UTC.
+        let T : Float = (jdn - 2451545.5 - timeZone / 24.0) / 36525.0;
+        let T2 : Float = T * T;
+        let dr : Float = PI / 180.0;
+
+        // Mean anomaly of the Sun (M)
+        let M : Float = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+        // Mean longitude (L0)
+        var L0 : Float = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+
+        // Equation of center (DL)
+        var DL : Float = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+        DL += (0.019993 - 0.000101 * T) * Math.sin(dr * 2.0 * M);
+        DL += 0.000290 * Math.sin(dr * 3.0 * M);
+
+        var L : Float = L0 + DL;
+
+        // Correction for nutation and aberration
+        // hiệu chỉnh nutation + aberration (sai số do dao động trục Trái Đất và chuyển động quang học).
+        let omega : Float = 125.04 - 1934.136 * T;
+        L -= 0.00569 + 0.00478 * Math.sin(omega * dr);
+
+        // Normalize result to [0, 360)
+        L := L - 360.0 * Float.floor(L / 360.0);
+
+        return L; // kinh độ Mặt Trời theo độ
     };
     
     func NewMoon(k : Int) : Float {
