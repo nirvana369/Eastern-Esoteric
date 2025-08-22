@@ -175,7 +175,9 @@ module {
         ("Bạch Lộ", 165, [9, 3, 6]),
         // ĐOÀI
         ("Thu Phân", 180, [7, 1, 4]),
-        // Kỳ môn độn giáp - đàm liên -> lập đông , hàn lộ 693
+        // Kỳ môn độn giáp - đàm liên -> lập đông , hàn lộ 693          +1
+        // Kỳ môn độn giáp bí kíp toàn thư -> lập đông, hàn lộ 693      +2
+
         ("Hàn Lộ", 195, [6, 9 ,3]),         // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
         ("Sương Giáng", 210, [5, 8, 2]),
         // CÀN
@@ -184,7 +186,8 @@ module {
         ("Đại Tuyết", 255, [4, 7 , 1]), // Hết Âm độn - idx 17
         // KHẢM
         ("Đông Chí", 270, [1, 7, 4]), // Dương Độn - idx 18
-        // Kỳ môn độn giáp - đàm liên -> tiểu hàn 258
+        // Kỳ môn độn giáp - đàm liên      -> tiểu hàn 258     +1
+        // Kỳ môn độn giáp bí kíp toàn thư -> tiểu hàn 258, sương giáng 582     +2
         ("Tiểu Hàn", 285, [2, 8, 5]),       // Tiểu hàn sương giáng, ngũ bát nhị 582 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
         ("Đại Hàn", 300, [3, 9, 6]),
         // CẤN
@@ -439,11 +442,12 @@ module {
         return Float.floor(365.25 * (Float.fromInt(y) + 4716.0)) 
                 + Float.floor(30.6001 * (Float.fromInt(m) + 1.0)) 
                 + d + b - 1524.5;
-        
-        // return Float.fromInt(LichHND.jdFromDate(date.day, date.month, date.year));
     };
     
-    private func calculate_solar_longitude(date : DateTime, time_zone : Float) : Float {
+    private func calculate_solar_longitude(mode : Nat, date : DateTime, time_zone : Float) : Float {
+        if (mode != 0) {
+            return _sun_longitude(date, time_zone);
+        };
         let jd = calculate_julian_day(date);
         let T = (jd - 2451545.0) / 36525.0;
         
@@ -461,8 +465,23 @@ module {
                 
         let sun_long = L0 + C;
         return if (sun_long < 0.0) { sun_long + 360.0 } else { sun_long };
-        // return LichHND.SunLongitude(jd);
-        // return getSunLongitude(jd, time_zone);
+    };
+
+    private func _find_solar_term_index(mode : Nat, date_time : DateTime, time_zone : Float) : Nat {
+        // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
+        // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
+        let sun_long = calculate_solar_longitude(mode, date_time, 7.0);
+        
+        // Find the solar term immediately before current position
+        var current_term_index = 0;
+        label f for (i in SOLAR_TERMS.keys()) {
+            if (sun_long >= Float.fromInt(SOLAR_TERMS[i].1)) {
+                current_term_index := i;
+            } else {
+                break f;
+            };
+        };
+        return current_term_index;
     };
         
     private func _phu_dau(d : GZTimeIndex) : GZTimeIndex {
@@ -501,6 +520,16 @@ module {
             case _ "Mậu"; // Default (shouldn't happen)
         };
         return luc_nghi;
+    };
+
+    private func _sun_longitude(date : DateTime, time_zone : Float) : Float {
+        let jd = Float.fromInt(LichHND.jdFromDate(date.day, date.month, date.year));
+        return LichHND.getSunLongitude(jd, time_zone);
+    };
+
+    private func _sun_longitude_1(date : DateTime) : Float {
+        let jd = Float.fromInt(LichHND.jdFromDate(date.day, date.month, date.year));
+        return LichHND.SunLongitude(jd);
     };
 
     public func don_giap_ky_mon(cuc : Nat,
@@ -842,6 +871,7 @@ module {
     public class KyMonDonGiap() {
 
         let log = Buffer.Buffer<Text>(0);
+        var solar_longitude_calc_mode = 0;
 
         public func reset_data() : ChartData {
             return {
@@ -871,6 +901,10 @@ module {
 
         public func setTrungCungMode(mode : TRUNG_CUNG_MODE) {
             trungCungMode := mode;
+        };
+
+        public func setSolarLongitudeCalcMode(m : Nat) {
+            solar_longitude_calc_mode := m;
         };
 
         public func tim_tuan_thu() {
@@ -1014,20 +1048,7 @@ module {
         };
         
         private func find_solar_term_index() {
-            // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
-            let date_time = chart_data.date_time;
-            // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
-            let sun_long = calculate_solar_longitude(date_time, 7.0);
-            
-            // Find the solar term immediately before current position
-            var current_term_index = 0;
-            label f for (i in SOLAR_TERMS.keys()) {
-                if (sun_long >= Float.fromInt(SOLAR_TERMS[i].1)) {
-                    current_term_index := i;
-                } else {
-                    break f;
-                };
-            };
+            let current_term_index = _find_solar_term_index(solar_longitude_calc_mode, chart_data.date_time, 7);
             
             chart_data := {
                 chart_data with
@@ -1101,7 +1122,8 @@ module {
 
         public func convert(dt : DateTime) : ({day : Int; month : Int; year : Int; isLeap : Int},
                                                         {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
-                                                        {nam : Text; thang : Text; ngay : Text; gio : Text}) {
+                                                        {nam : Text; thang : Text; ngay : Text; gio : Text},
+                                                        {sun_longitude_original: Float; sun_longitude : Float; sun_term_index : Nat; sun_longitude_1 : Float}) {
             let (lunarDay, lunarMonth, lunarYear, lunarLeap) = AmLich.ngayThangNam(dt.day, dt.month, dt.year, true, 7);
             let amLich = {
                 day = lunarDay;
@@ -1124,12 +1146,19 @@ module {
                 ngay = ("Ngày: " # THIEN_CAN[canChiIndex.ngay.can] # " " # DIA_CHI[canChiIndex.ngay.chi]);
                 gio = ("Giờ: " # THIEN_CAN[canChiIndex.gio.can] # " " # DIA_CHI[canChiIndex.gio.chi]);
             };
-            return (amLich, canChiIndex, canChi);
+            let sun = {
+                sun_longitude_original = calculate_solar_longitude(0, dt, 7);
+                sun_longitude = _sun_longitude(dt, 7);
+                sun_term_index = _find_solar_term_index(1, dt, 7);
+                sun_longitude_1 = _sun_longitude_1(dt);
+            };
+            return (amLich, canChiIndex, canChi, sun);
         };
     };
 
-    public func KMDG_FROM_DATETIME(prompt : DateTime) : async (Text, ChartData) {
+    public func KMDG_FROM_DATETIME(prompt : DateTime, solarCalcMode : Nat) : async (Text, ChartData) {
         let qimen = KyMonDonGiap();
+        qimen.setSolarLongitudeCalcMode(solarCalcMode);
         let chart = qimen.calculate_chart(prompt);
         (chart, qimen.get_chart());
     };
@@ -1144,7 +1173,8 @@ module {
 
     public func KMDG_AMLICH(prompt : DateTime) : async ({day : Int; month : Int; year : Int; isLeap : Int},
                                                         {nam : GZTimeIndex; thang : GZTimeIndex; ngay : GZTimeIndex; gio : GZTimeIndex},
-                                                        {nam : Text; thang : Text; ngay : Text; gio : Text}) {
+                                                        {nam : Text; thang : Text; ngay : Text; gio : Text},
+                                                        {sun_longitude_original: Float; sun_longitude : Float; sun_term_index : Nat; sun_longitude_1 : Float}) {
         let qimen = KyMonDonGiap();
         return qimen.convert(prompt);
     };
