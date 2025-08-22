@@ -156,44 +156,44 @@ module {
         ở số 4, 7, 1. Tiết tiểu thử ở số 8, 2, 5. Tiết lập đông hàn lộ ở số 6, 3, 9. Tiết lập thu ở số 2, 5, 8.
         Tiết tiểu hàn sương giáng ở số 5, 8, 2. Tiết sử thử ở số 1, 4, 7.
     ***/
-    let SOLAR_TERMS : [(Text, Nat, [Nat])] = [
+    let SOLAR_TERMS : [(Text, Float, [Nat])] = [
         // CHẤN
-        ("Xuân Phân", 0, [3, 9, 6]),
-        ("Thanh Minh", 15, [4, 1, 7]),
-        ("Cốc Vũ", 30, [5, 2, 8]),
+        ("Xuân Phân", 0.0, [3, 9, 6]),
+        ("Thanh Minh", 15.0, [4, 1, 7]),
+        ("Cốc Vũ", 30.0, [5, 2, 8]),
         // TỐN
-        ("Lập Hạ", 45, [4, 1, 7]),
-        ("Tiểu Mãn", 60, [5, 2, 8]),
-        ("Mang Chủng", 75, [6, 3, 9]),// Hết Dương độn - idx 5
+        ("Lập Hạ", 45.0, [4, 1, 7]),
+        ("Tiểu Mãn", 60.0, [5, 2, 8]),
+        ("Mang Chủng", 75.0, [6, 3, 9]),// Hết Dương độn - idx 5
         // LY
-        ("Hạ Chí", 90, [9, 3, 6]), // Âm Độn - idx 6
-        ("Tiểu Thử", 105, [8, 2, 5]),
-        ("Đại Thử", 120, [7, 1, 4]),
+        ("Hạ Chí", 90.0, [9, 3, 6]), // Âm Độn - idx 6
+        ("Tiểu Thử", 105.0, [8, 2, 5]),
+        ("Đại Thử", 120.0, [7, 1, 4]),
         // KHÔN
-        ("Lập Thu", 135, [2, 5, 8]),
-        ("Xử Thử", 150, [1, 4, 7]),
-        ("Bạch Lộ", 165, [9, 3, 6]),
+        ("Lập Thu", 135.0, [2, 5, 8]),
+        ("Xử Thử", 150.0, [1, 4, 7]),
+        ("Bạch Lộ", 165.0, [9, 3, 6]),
         // ĐOÀI
-        ("Thu Phân", 180, [7, 1, 4]),
+        ("Thu Phân", 180.0, [7, 1, 4]),
         // Kỳ môn độn giáp - đàm liên -> lập đông , hàn lộ 693          +1
         // Kỳ môn độn giáp bí kíp toàn thư -> lập đông, hàn lộ 693      +2
 
-        ("Hàn Lộ", 195, [6, 9 ,3]),         // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
-        ("Sương Giáng", 210, [5, 8, 2]),
+        ("Hàn Lộ", 195.0, [6, 9 ,3]),         // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Sương Giáng", 210.0, [5, 8, 2]),
         // CÀN
-        ("Lập Đông", 225, [6, 9, 3]),       // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
-        ("Tiểu Tuyết", 240, [5, 8, 2]),
-        ("Đại Tuyết", 255, [4, 7 , 1]), // Hết Âm độn - idx 17
+        ("Lập Đông", 225.0, [6, 9, 3]),       // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Tiểu Tuyết", 240.0, [5, 8, 2]),
+        ("Đại Tuyết", 255.0, [4, 7 , 1]), // Hết Âm độn - idx 17
         // KHẢM
-        ("Đông Chí", 270, [1, 7, 4]), // Dương Độn - idx 18
+        ("Đông Chí", 270.0, [1, 7, 4]), // Dương Độn - idx 18
         // Kỳ môn độn giáp - đàm liên      -> tiểu hàn 258     +1
         // Kỳ môn độn giáp bí kíp toàn thư -> tiểu hàn 258, sương giáng 582     +2
-        ("Tiểu Hàn", 285, [2, 8, 5]),       // Tiểu hàn sương giáng, ngũ bát nhị 582 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
-        ("Đại Hàn", 300, [3, 9, 6]),
+        ("Tiểu Hàn", 285.0, [2, 8, 5]),       // Tiểu hàn sương giáng, ngũ bát nhị 582 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Đại Hàn", 300.0, [3, 9, 6]),
         // CẤN
-        ("Lập Xuân", 315, [8, 5, 2]),
-        ("Vũ Thủy", 330, [9, 6, 3]),
-        ("Kinh Trập", 345, [1, 7, 4])
+        ("Lập Xuân", 315.0, [8, 5, 2]),
+        ("Vũ Thủy", 330.0, [9, 6, 3]),
+        ("Kinh Trập", 345.0, [1, 7, 4])
     ];
     
     let PALACE_NAMES : [(Nat, Text)] = [
@@ -475,7 +475,7 @@ module {
         // Find the solar term immediately before current position
         var current_term_index = 0;
         label f for (i in SOLAR_TERMS.keys()) {
-            if (sun_long >= Float.fromInt(SOLAR_TERMS[i].1)) {
+            if (sun_long >= SOLAR_TERMS[i].1) {
                 current_term_index := i;
             } else {
                 break f;
