@@ -199,7 +199,7 @@ module {
         
         // Can của tháng
         let canThang = (new_nnnn * 12 + new_tt + 3) % 10;
-        let chiThang = new_tt + 1 % 12;
+        let chiThang = (new_tt + 1) % 12;
         // Can chi của năm
         let canNam = (new_nnnn + 6) % 10;
         let chiNam = (new_nnnn + 8) % 12;
