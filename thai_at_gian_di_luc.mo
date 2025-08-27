@@ -3,6 +3,10 @@
 * Copyright         : 2025 nirvana369
 * File Name         : thai_at_gian_di_luc.mo
 * Description       : Thái Ất thần số - Tam thức học
+*                     - Bậc vua có đất nước thì xem tuế kế (năm)
+*                     - Nguyệt kế (tháng) thì xem cho bậc công khanh
+*                     - Nhật kế (ngày) thì cho các quan và dân chúng
+*                     - Vận trù chiến sự thì bậc tướng soái xem Thời kế (giờ) 
 *                    
 * Revision History  :
 * Date				Author    		Comments
@@ -25,15 +29,15 @@ module {
 
     // Thứ tự bát quái
     // 1 - Càn ; 2 - Ly ; 3 - Cấn ; 4 - Chấn ; 6 - Đoài ; 7 - Khôn ; 8 - Khảm ; 9 - Tốn
-    let CAN_KIM = (1, "Càn");
-    let LY_HOA = (2, "Ly");
-    let CAN_THO = (3, "Cấn");
-    let CHAN_MOC = (4, "Chấn");
-    let TRUNG = (5, "Trung");
-    let DOAI_KIM = (6, "Đoài");
-    let KHON_THO = (7, "Khôn");
-    let KHAM_THUY = (8, "Khảm");
-    let TON_MOC = (9, "Tốn");
+    let CAN_KIM = ("Càn", 1);
+    let LY_HOA = ("Ly", 2);
+    let CAN_THO = ("Cấn", 3);
+    let CHAN_MOC = ("Chấn", 4);
+    let TRUNG = ("Trung", 5);
+    let DOAI_KIM = ("Đoài", 6);
+    let KHON_THO = ("Khôn", 7);
+    let KHAM_THUY = ("Khảm", 8);
+    let TON_MOC = ("Tốn", 9);
     let BAT_QUAI = [CAN_KIM,
                     LY_HOA, 
                     CAN_THO, 
@@ -61,26 +65,38 @@ module {
         HOI = "Hợi";
     };
 
-    let DIA_BAN : [(Nat, Text)] = [
-        (1, CAN_KIM.1), (2, CHI.HOI), (3,CHI.TY), (4,CHI.SUU), (5, CAN_THO.1), (6,CHI.DAN), 
-        (7,CHI.MAO), (8,CHI.THIN), (9, TON_MOC.1), (10,CHI.TI), (11,CHI.NGO), (12,CHI.MUI),
-        (13, KHON_THO.1), (14,CHI.THAN), (15,CHI.DAU), (16,CHI.TUAT)
+    let DIA_BAN : [(Text, Nat)] = [
+        (CAN_KIM.0, 1), (CHI.HOI, 2), (CHI.TY, 3), (CHI.SUU, 4), (CAN_THO.0, 5), (CHI.DAN, 6), 
+        (CHI.MAO, 7), (CHI.THIN, 8), (TON_MOC.0, 9), (CHI.TI, 10), (CHI.NGO, 11), (CHI.MUI, 12),
+        (KHON_THO.0, 13), (CHI.THAN, 14), (CHI.DAU, 15), (CHI.TUAT, 16)
     ];
 
-    let THAP_LUC_THAN : [(Nat, Text)] = [
-        (1,"Âm Đức"), (2,"Đại nghĩa"), (3,"Địa Chu"), (4,"Dương Đức"), (5,"Hòa Đức"), (6,"Lã Thân"), 
-        (7,"Cao Tùng"), (8,"Thái Dương"), (9,"Đại Trắc"), (10,"Đại Thần"), (11,"Thiên Uy"), (12,"Thiên Đạo"), 
-        (13,"Đại Vũ"), (14,"Vũ Đức"), (15,"Thái Thốc"), (16,"Âm Chủ")
+    let THAP_LUC_THAN : [(Text, Nat)] = [
+        ("Âm Đức", 1), ("Đại nghĩa", 2), ("Địa Chu", 3), ("Dương Đức", 4), ("Hòa Đức", 5), ("Lã Thân", 6), 
+        ("Cao Tùng", 7), ("Thái Dương", 8), ("Đại Trắc", 9), ("Đại Thần", 10), ("Thiên Uy", 11), ("Thiên Đạo", 12), 
+        ("Đại Vũ", 13), ("Vũ Đức", 14), ("Thái Thốc", 15), ("Âm Chủ", 16)
     ];
 
-    let THIEN_CAN : [(Nat, Text)] = [
-        (1,"Giáp"), (2,"Ất"), (3,"Bính"), (4,"Đinh"), (5,"Mậu"), (6,"Kỷ"), 
-        (7,"Canh"), (8,"Tân"), (9,"Nhâm"), (10,"Quý")
+    let THIEN_CAN : [(Text, Nat)] = [
+        ("Giáp", 1), ("Ất", 2), ("Bính", 3), ("Đinh", 4), ("Mậu", 5), ("Kỷ", 6), 
+        ("Canh", 7), ("Tân", 8), ("Nhâm", 9), ("Quý", 10)
     ];
 
-    let DIA_CHI : [(Nat, Text)] = [
-        (1,CHI.TY), (2,CHI.SUU), (3,CHI.DAN), (4,CHI.MAO), (5,CHI.THIN), (6,CHI.TI), 
-        (7,CHI.NGO), (8,CHI.MUI), (9,CHI.THAN), (10,CHI.DAU), (11,CHI.TUAT), (12,CHI.HOI)
+    let BAT_MON = [("Hưu", 1), ("Sinh", 2), ("Thương", 3), ("Đỗ", 4), ("Cảnh", 5), ("Tử", 6), ("Kinh", 7), ("Khai", 8)];
+
+    let CUU_TINH = [("Thiên Bồng", 1),  // Lục Mậu tinh - chủ về việc cảm động không yên, việc thay đổi
+                    ("Thiên Nhuế", 2), // Lục Kỷ tinh - chủ về can qua, binh giáp, trộm cướp, hưng phế 
+                    ("Thiên Xung", 3), // Lục Canh tinh - chủ về binh qua sát phạt
+                    ("Thiên Phụ", 4),  // Lục Tân tinh - chủ về kho đụn, ngũ cốc (lành)
+                    ("Thiên Cầm", 5), // Lục Nhâm tinh - chủ về giết kẻ có tội (lành)
+                    ("Thiên Tâm", 6), // Lục Quý tinh - chủ về đánh dẹp kẻ vô đạo (lành)
+                    ("Thiên Trụ", 7), // Lục Đinh tinh - chủ về họa hại hiệu lệnh
+                    ("Thiên Nhậm", 8),  // Lục Bính tinh - chủ về âm hình của bậc nữ chúa
+                    ("Thiên Anh", 9)]; // Lục Ất tinh - chủ về dương đức của bậc quân nhân
+
+    let DIA_CHI : [(Text, Nat)] = [
+        (CHI.TY, 1), (CHI.SUU, 2), (CHI.DAN, 3), (CHI.MAO, 4), (CHI.THIN, 5), (CHI.TI, 6), 
+        (CHI.NGO, 7), (CHI.MUI, 8), (CHI.THAN, 9), (CHI.DAU, 10), (CHI.TUAT, 11), (CHI.HOI, 12)
     ];
 
     private func move(max : Nat, s : Nat, step : Int) : Nat {
@@ -121,7 +137,7 @@ module {
         var index = 0;
         while (index < stop) {
             index := index + 1;
-            callback(index, THIEN_CAN[can - 1].1, DIA_CHI[chi - 1].1);
+            callback(index, THIEN_CAN[can - 1].0, DIA_CHI[chi - 1].0);
             can := if (can == 10) 1 else (can + 1);
             chi := if (chi == 12) 1 else (chi + 1);
         };
@@ -252,7 +268,7 @@ module {
             return t;
         };
 
-        public func tim_thai_at() : {cung : (Nat, Text); stayed_year : Nat} {
+        public func tim_thai_at() : {cung : (Text, Nat); stayed_year : Nat} {
             /***
             * Tìm Thái Ất
             *   Do Thái ất du hành qua 8 cung (không vào 5) 
@@ -267,9 +283,10 @@ module {
                 cung_index += 1;
                 if (cung_index != 4) nam -= 3; // không phải trung cung
             };
+            let stayed = if (nam % 3 == 0) (3) else (nam % 3);
             return {
                 cung = BAT_QUAI[cung_index];
-                stayed_year = (nam % 3);
+                stayed_year = stayed;
             };
         };
 
@@ -308,9 +325,9 @@ module {
             // 5 tí = giáp tý - bính tý - mậu tý - canh tý - nhâm tý, mỗi tý cách nhau 12 năm
             let can_index = phep_5_ti * 2;
             let chi_index = 0; // tý
-            let nguyen = THIEN_CAN[can_index].1 # " " # DIA_CHI[chi_index].1;
+            let nguyen = THIEN_CAN[can_index].0 # " " # DIA_CHI[chi_index].0;
             var current_year = "";
-            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].0, ?1, ?72, func (index : Nat, can : Text, chi : Text) : () {
+            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (index : Nat, can : Text, chi : Text) : () {
                 if (index == (tueKe % 72)) {
                     // found
                     current_year := can # " " # chi;
@@ -328,7 +345,7 @@ module {
         let tiet_khi = "Đông Chí"; //"Hạ Chí";
         let is_thoi_ke = false; 
         
-        public func tim_ke_than() : (Int, (Nat, Text)) {
+        public func tim_ke_than() : (Int, (Text, Nat)) {
             let nMove : Int = tich_nien() % 12;
             // Khởi từ Dần là Giáp Tý đếm ngược n cung dừng ở đâu Kế Thần ở đó
             // Duy chỉ có Thời kế - từ Hạ chí dùng cục âm : Khởi từ Thân là Giáp Tý đếm ngược lại.
@@ -340,7 +357,7 @@ module {
             return (nMove, DIA_CHI[cung_ke_than_index]);
         };
 
-        public func tim_thien_muc() : (Nat, Text) { 
+        public func tim_thien_muc() : (Text, Nat) { 
             /*
                 Tìm Thiên Mục (Văn Xương / Chủ mục)
 
@@ -375,7 +392,7 @@ module {
             return DIA_BAN[dia_ban_index];
         };
 
-        public func tim_khach_muc_thuy_kich() : ([(Text, Text)], (Nat, Text)) {
+        public func tim_khach_muc_thuy_kich() : ([(Text, Text)], (Text, Nat)) {
             /*
                 Tìm Thủy Kích (Khách mục)
                 Giống phép Thời Kế, dùng cách này để an vị Khách là kỳ binh và nghe ngóng (tình hình) quân giặc, 
@@ -389,8 +406,8 @@ module {
                 Văn Xương năm ấy ở Tốn, lâm vào Âm chủ, tức năm Canh Ngọ Thủy Kích ở Tuất, âm chủ.
             */
             let (_, (index, diaChi)) = tim_ke_than();
-            let vitriKeThan = Array.indexOf((index, diaChi), DIA_BAN, func (a : (Nat, Text), b : (Nat, Text)) : Bool {
-                return a.1 == b.1;
+            let vitriKeThan = Array.indexOf((index, diaChi), DIA_BAN, func (a : (Text, Nat), b : (Text, Nat)) : Bool {
+                return a.0 == b.0;
             });
             let ke_than_index = switch (vitriKeThan) {
                 case null Debug.trap("Cannot find vị trí Kế Thần");
@@ -400,11 +417,11 @@ module {
             var can_hoa_duc_index = ke_than_index;
             var thuy_kich_index = 4;
             let buf = Buffer.Buffer<(Text, Text)>(0);
-            let map = HashMap.HashMap<Nat, (Nat, Text)>(0, Nat.equal, Hash.hash);
-            while (can_hoa_duc_index != vanXuong.0 - 1) {
-                buf.add((DIA_BAN[can_hoa_duc_index].1, DIA_BAN[thuy_kich_index].1));
+            // let map = HashMap.HashMap<Nat, (Text, Nat)>(0, Nat.equal, Hash.hash);
+            while (can_hoa_duc_index != vanXuong.1 - 1) {
+                buf.add((DIA_BAN[can_hoa_duc_index].0, DIA_BAN[thuy_kich_index].0));
                 
-                map.put(can_hoa_duc_index, THAP_LUC_THAN[thuy_kich_index]);
+                // map.put(can_hoa_duc_index, THAP_LUC_THAN[thuy_kich_index]);
 
                 can_hoa_duc_index := move(15, can_hoa_duc_index, 1);
                 thuy_kich_index := move(15, thuy_kich_index, 1);
@@ -412,114 +429,118 @@ module {
             return ([], DIA_BAN[thuy_kich_index]);
         };
 
-        public func tim_chu_khach() : ([((Nat, Text), (Nat, Nat))], (Nat, Nat)) {
-            let DIA_BAN_BAT_QUAI_INDEX = [
-                ((CAN_KIM.1, CHI.HOI), 1),
-                ((KHAM_THUY.1, CHI.TY), 3),
-                ((CAN_THO.1, CHI.DAN), 5),
-                ((CHAN_MOC.1, CHI.MAO), 7),
-                ((TON_MOC.1, CHI.TI), 9),
-                ((LY_HOA.1, CHI.NGO), 11),
-                ((KHON_THO.1, CHI.THAN), 13),
-                ((DOAI_KIM.1, CHI.DAU), 15)
+        public func tim_chu_khach() : ([(((Text, Text), Nat), (Nat))], (Nat, Nat)) {
+            let DIA_BAN_BAT_QUAI_INDEX = [  // map DIA_BAN 16 vi trí sang địa bàn 12 cung
+                ((CAN_KIM.0, CHI.HOI), 1),      // index: 0
+                ((KHAM_THUY.0, CHI.TY), 8),
+                ((CHI.SUU, CHI.SUU), 0),
+                ((CAN_THO.0, CHI.DAN), 3),      // index: 3
+                ((CHAN_MOC.0, CHI.MAO), 4),
+                ((CHI.THIN, CHI.THIN), 0),
+                ((TON_MOC.0, CHI.TI), 9),       // index: 6
+                ((LY_HOA.0, CHI.NGO), 2),
+                ((CHI.MUI, CHI.MUI), 0),
+                ((KHON_THO.0, CHI.THAN), 7),    // index: 9
+                ((DOAI_KIM.0, CHI.DAU), 6),
+                ((CHI.TUAT, CHI.TUAT), 0),
             ];
 
             let vanXuong = tim_thien_muc();
             let (_, thuyKich) = tim_khach_muc_thuy_kich();
             let thaiAt = tim_thai_at();
-            let thai_at_index = switch (Array.find(DIA_BAN_BAT_QUAI_INDEX, 
-                                                        func ((x, y) : ((Text, Text), Nat)) : Bool = (x.0 == thaiAt.cung.1))) {
-                                                            case (?(_, y)) {
-                                                                (y - 1);
-                                                            };
-                                                            case null Debug.trap("Không tìm thấy thái ất!");
-                                                        };
-            let cung_before_thai_at = if (thai_at_index == 2 or thai_at_index == 6 or thai_at_index == 10 or thai_at_index == 14) {
-                // Nếu Thái Ất là Khảm/Chấn/Ly/Đoài - Tý/Mão/Ngọ/Dậu thì cung trước thái ất lùi về 2
-                move(15, thai_at_index, -2);
-            } else {
-                move(15, thai_at_index, -1);
+
+            let batquaiValue = HashMap.fromIter<Text, Nat>(BAT_QUAI.vals(), BAT_QUAI.size(), Text.equal, Text.hash);
+            let diachiValue = HashMap.fromIter<Text, Nat>(BAT_QUAI.vals(), BAT_QUAI.size(), Text.equal, Text.hash);
+            for ((item, _) in DIA_BAN_BAT_QUAI_INDEX.vals()) {
+                let val = Option.get(batquaiValue.get(item.0), 0);
+                diachiValue.put(item.1, val);
             };
 
-            let mapBatQuai = Array.map<(Nat, Text), (Text, Nat)>(CLOCK_BAT_QUAI, func ((x, y) : (Nat, Text)) : (Text, Nat) = ((y, x)));
-            let batquaiValue = HashMap.fromIter<Text, Nat>(mapBatQuai.vals(), mapBatQuai.size(), Text.equal, Text.hash);
-            
-            let buf = Buffer.Buffer<((Nat, Text), (Nat, Nat))>(0);
-            // chủ đếm từ văn xương đến cung trước thái ất
-            var chu = 0;
-            buf.add((0, "Tìm Chủ - Khởi Văn Xương"), (0, 0));
-
-            let find = func (name : Text, vitri : Nat, checkGianThan : Bool) : (Nat, Nat) {
-                var val = 0;
-                var pos = vitri - 1;
-                for (((batquai_name, chi_name), p) in DIA_BAN_BAT_QUAI_INDEX.vals()) {
-                    if (name == batquai_name or name == chi_name) {
-                        if (checkGianThan == true) {
-                            val := Option.get(batquaiValue.get(name), 0);
-                        } else {
-                            val := Option.get(batquaiValue.get(batquai_name), 0);
+            let getCungValue = func (name : Text, checkGianThan : Bool) : (Nat) {
+                switch (batquaiValue.get(name)) {
+                    case (?value) {
+                        return value;
+                    };
+                    case (null) {
+                        switch (diachiValue.get(name)) {
+                            case (?value) {
+                                if (checkGianThan and name == CHI.TY or name == CHI.DAU or name == CHI.NGO or name == CHI.MAO) return value;
+                                // if (value > 1) return value else return 1;
+                                if (checkGianThan) return 1;
+                                return value;
+                            };
+                            case null {
+                                if (checkGianThan) return 1;
+                                return 0;
+                            };
                         };
-                        pos := p - 1;
-                        return (pos, val);
                     };
                 };
-                return (pos, val);
             };
+
+            let findCungIndex = func (cung_name : Text) : (Text, Nat) {
+                for (i in Iter.range(0, DIA_BAN_BAT_QUAI_INDEX.size() - 1)) {
+                    let ((name, chi_name), _) = DIA_BAN_BAT_QUAI_INDEX[i];
+                    if (cung_name == name or cung_name == chi_name) return (cung_name, i);
+                };
+                (cung_name, 0);
+            };
+
+            let (thai_at_vi_tri_name, thai_at_index) = findCungIndex(thaiAt.cung.0);
+            let cung_before_thai_at = move(11, thai_at_index, -1);
             
-            var van_xuong_index = find(vanXuong.1, vanXuong.0, false);
-            chu += if (van_xuong_index.1 == 0) 1 else van_xuong_index.1;
-            buf.add(DIA_BAN[van_xuong_index.0], van_xuong_index);
-            if (van_xuong_index.0 == thai_at_index or van_xuong_index.0 == cung_before_thai_at) {
+            let buf = Buffer.Buffer<(((Text, Text), Nat), (Nat))>(0);
+            // chủ đếm từ văn xương đến cung trước thái ất
+            var chu = 0;
+            buf.add((("Tìm Chủ - Khởi Văn Xương", ""), 0), (0));
+            
+            let van_xuong_index_value = getCungValue(vanXuong.0, true);
+            chu += van_xuong_index_value;
+            var cungIndex = findCungIndex(vanXuong.0);
+            var p = cungIndex.1;
+            buf.add(DIA_BAN_BAT_QUAI_INDEX[p], van_xuong_index_value);
+            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) or p == cung_before_thai_at) {
+            // if (p == cung_before_thai_at) {
                 ();
             } else {
-                var p = van_xuong_index.0;
                 while (p != cung_before_thai_at) {
-                    if (p == 0 or p == 4 or p == 8 or p == 12) {
-                        // nếu là Càn, Cấn, Tốn, Khôn thì đi 2 bước vì cùng cung với Hợi, Dần, Tị, Thân
-                        p := move(15, p, 2);
-                    } else {
-                        p := move(15, p, 1);
-                    };
-                    let tmp = find(DIA_BAN[p].1, DIA_BAN[p].0, false);
-                    chu += tmp.1;
-                    buf.add(DIA_BAN[p], tmp);
+                    p := move(11, p, 1);
+                    let val = DIA_BAN_BAT_QUAI_INDEX[p].1;
+                    chu += val;
+                    buf.add(DIA_BAN_BAT_QUAI_INDEX[p], val);
                 };
             };
             // tính đến cung trước thái ất
             
-            buf.add((0, "----------------------------------------"), (0, 0));
+            buf.add((("----------------------------------------", ""), 0), (0));
             // khách đếm từ thủy kích đến trước cung thái ất
             var khach = 0;
-            buf.add((0, "Tìm Khách - Khởi Thủy Kích"), (0, 0));
+            buf.add((("Tìm Khách - Khởi Thủy Kích", ""), 0), (0));
 
-            var thuy_kich_index = find(thuyKich.1, thuyKich.0, false);
-            khach += if (thuy_kich_index.1 == 0) 1 else thuy_kich_index.1;
-            buf.add(DIA_BAN[thuy_kich_index.0], thuy_kich_index);
-            if (thuy_kich_index.0 == thai_at_index or thuy_kich_index.0 == cung_before_thai_at) {
+            var thuy_kich_index_value = getCungValue(thuyKich.0, true);
+            khach +=thuy_kich_index_value;
+            cungIndex := findCungIndex(thuyKich.0);
+            p := cungIndex.1;
+            buf.add(DIA_BAN_BAT_QUAI_INDEX[p], thuy_kich_index_value);
+            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) and p == cung_before_thai_at) {
                 ();
             } else {
-                var p = thuy_kich_index.0;
                 while (p != cung_before_thai_at) {
-                    if (p == 0 or p == 4 or p == 8 or p == 12) {
-                        // nếu là Càn, Cấn, Tốn, Khôn thì đi 2 bước vì cùng cung với Hợi, Dần, Tị, Thân
-                        p := move(15, p, 2);
-                    } else {
-                        p := move(15, p, 1);
-                    };
-                    let tmp = find(DIA_BAN[p].1, DIA_BAN[p].0, false);
-                    khach += tmp.1;
-                    buf.add(DIA_BAN[p], tmp);
+                    p := move(11, p, 1);
+                    let val = DIA_BAN_BAT_QUAI_INDEX[p].1;
+                    khach += val;
+                    buf.add(DIA_BAN_BAT_QUAI_INDEX[p], val);
                 };
             };
 
-            return (Buffer.toArray<((Nat, Text), (Nat, Nat))>(buf), (chu, khach));
+            return (Buffer.toArray<(((Text, Text), Nat), (Nat))>(buf), (chu, khach));
         };
 
         public func tim_dai_tuong() : ({
-                chu_dai_tuong : (Text, (Nat, Text));
-                chu_tham_tuong : (Text, (Nat, Text));
-                khach_dai_tuong : (Text, (Nat, Text));
-                khach_tham_tuong : (Text, (Nat, Text));
+                chu_dai_tuong : (Text, (Text, Nat));
+                chu_tham_tuong : (Text, (Text, Nat));
+                khach_dai_tuong : (Text, (Text, Nat));
+                khach_tham_tuong : (Text, (Text, Nat));
             }) {
             /*
                 ĐT(Y) = (Chủ || Khách) % 10
@@ -543,16 +564,18 @@ module {
             */
 
             let (_, (chu, khach)) = tim_chu_khach();
-            let chu_dai_tuong = if (chu % 10 == 0) 1 else (chu % 10);
+            ignore if (chu == 0) ("Vô địa");
+            ignore if (khach == 0) ("Vô địa");
+            let chu_dai_tuong = if (chu % 10 == 0) (chu / 10) else (chu % 10);
             let chu_tham_tuong = if ((chu_dai_tuong * 3) % 10 == 0) 1 else ((chu_dai_tuong * 3) % 10);
-            let khach_dai_tuong = if (khach % 10 == 0) 1 else (khach % 10); 
+            let khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
             let khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
 
             return {
-                chu_dai_tuong : (Text, (Nat, Text)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
-                chu_tham_tuong : (Text, (Nat, Text)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
-                khach_dai_tuong : (Text, (Nat, Text)) = ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]);
-                khach_tham_tuong : (Text, (Nat, Text)) = ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1]);
+                chu_dai_tuong : (Text, (Text, Nat)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
+                chu_tham_tuong : (Text, (Text, Nat)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
+                khach_dai_tuong : (Text, (Text, Nat)) = ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]);
+                khach_tham_tuong : (Text, (Text, Nat)) = ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1]);
             };
         };
     };
