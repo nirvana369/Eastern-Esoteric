@@ -516,31 +516,30 @@ module {
                 };
             };
 
-            let findCungIndex = func (cung_name : Text) : (Text, Nat) {
+            let findCungIndex = func (cung_name : Text) : (Text, Nat, Nat) {
+                let value = getCungValue(cung_name);
                 for (i in Iter.range(0, DIA_BAN_BAT_QUAI_INDEX.size() - 1)) {
                     let ((name, chi_name), _) = DIA_BAN_BAT_QUAI_INDEX[i];
-                    if (cung_name == name or cung_name == chi_name) return (cung_name, i);
+                    if (cung_name == name or cung_name == chi_name) return (cung_name, i, value);
                 };
-                (cung_name, 0);
+                (cung_name, 0, value);
             };
 
-            let (thai_at_cung_name, thai_at_cung_vitri) = findCungIndex(thaiAt.cung.0);
+            let (thai_at_cung_name, thai_at_cung_vitri, _) = findCungIndex(thaiAt.cung.0);
             let cung_before_thai_at = move(11, thai_at_cung_vitri, -1);
             
             let buf = Buffer.Buffer<(((Text, Text), Nat), (Nat))>(0);
             // chủ đếm từ văn xương đến cung trước thái ất
-            var chu = 0;
+
             buf.add((("Tìm Chủ - Khởi Văn Xương", ""), 0), (0));
             
-            let van_xuong_index_value = getCungValue(vanXuong.0);
-            chu += van_xuong_index_value;
             var cungIndex = findCungIndex(vanXuong.0);
-            var p = cungIndex.1;
-            buf.add(DIA_BAN_BAT_QUAI_INDEX[p], van_xuong_index_value);
-            // if ((p == thai_at_cung_vitri and thai_at_cung_name == cungIndex.0) or p == cung_before_thai_at) {
-            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or p == cung_before_thai_at) {
+            var chu = cungIndex.2;
+            buf.add(DIA_BAN_BAT_QUAI_INDEX[cungIndex.1], cungIndex.2);
+            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or cungIndex.1 == cung_before_thai_at) {
                 ();
             } else {
+                var p = cungIndex.1;
                 while (p != cung_before_thai_at) {
                     p := move(11, p, 1);
                     let val = DIA_BAN_BAT_QUAI_INDEX[p].1;
@@ -552,18 +551,15 @@ module {
             
             buf.add((("----------------------------------------", ""), 0), (0));
             // khách đếm từ thủy kích đến trước cung thái ất
-            var khach = 0;
             buf.add((("Tìm Khách - Khởi Thủy Kích", ""), 0), (0));
 
-            var thuy_kich_index_value = getCungValue(thuyKich.0);
-            khach +=thuy_kich_index_value;
             cungIndex := findCungIndex(thuyKich.0);
-            p := cungIndex.1;
-            buf.add(DIA_BAN_BAT_QUAI_INDEX[p], thuy_kich_index_value);
-            // if ((p == thai_at_cung_vitri and thai_at_cung_name == cungIndex.0) or p == cung_before_thai_at) {
-            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or p == cung_before_thai_at) {
+            var khach = cungIndex.2;
+            buf.add(DIA_BAN_BAT_QUAI_INDEX[cungIndex.1], cungIndex.2);
+            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or cungIndex.1 == cung_before_thai_at) {
                 ();
             } else {
+                var p = cungIndex.1;
                 while (p != cung_before_thai_at) {
                     p := move(11, p, 1);
                     let val = DIA_BAN_BAT_QUAI_INDEX[p].1;
