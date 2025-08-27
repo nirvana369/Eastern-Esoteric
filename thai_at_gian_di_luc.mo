@@ -156,10 +156,39 @@ module {
         buf.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
         buf.add("Cục : " # debug_show(t.tinh_cuc()));
         buf.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()));
-        buf.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc()));
+        buf.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong()));
         buf.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach()));
         buf.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+        Text.join("\n----------------------------\n", buf.vals())
+    };
+
+    public func from_to(year_from : Int, year_to : Int) : async (Text) {
+        let buf = Buffer.Buffer<Text>(0);
+        var i = year_from;
+        while (i <= year_to) {
+            let info = Buffer.Buffer<Text>(0);
+            let t = ThaiAt(i);
+            let thai_at = t.tim_thai_at();
+            let thai_at_cung = thai_at.cung;
+            let (_, ke_than) = t.tim_ke_than();
+            let (cuc, _, _) = t.tinh_cuc();
+            let van_xuong = t.tim_thien_muc_van_xuong();
+            let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
+            let (_, chu_khach) = t.tim_chu_khach();
+            info.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(i) # ": " # debug_show(t.tich_nien()));
+            info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung));
+            info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
+            info.add("Cục : " # debug_show(cuc));
+            info.add("Vị trí Kế Thần: " # debug_show(ke_than));
+            info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(van_xuong));
+            info.add("Vị trí Khách Mục/Thủy Kích: " # debug_show(thuy_kich));
+            info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
+            info.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+            
+            buf.add(Text.join("\n", info.vals()));
+            i += 1;
+        };
         Text.join("\n----------------------------\n", buf.vals())
     };
 
@@ -217,7 +246,7 @@ module {
             let t = ThaiAt(test.year);
             let ta = t.tim_thai_at();
             let cuc = t.tinh_cuc();
-            let van_xuong = t.tim_thien_muc();
+            let van_xuong = t.tim_thien_muc_van_xuong();
             let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
             let (_, chu_khach) = t.tim_chu_khach();
             assert(ta.cung.0 == test.thai_at.0 and ta.cung.1 == test.thai_at.1);
@@ -338,7 +367,8 @@ module {
                     current_year := can # " " # chi;
                 };
             });
-            return ((tueKe % 72), nguyen, current_year);
+            let cuc = if (tueKe % 72 == 0) (72) else (tueKe % 72); 
+            return (cuc, nguyen, current_year);
         };
 
         type CACH_TINH = {
@@ -362,7 +392,7 @@ module {
             return (nMove, DIA_CHI[cung_ke_than_index]);
         };
 
-        public func tim_thien_muc() : (Text, Nat) { 
+        public func tim_thien_muc_van_xuong() : (Text, Nat) { 
             /*
                 Tìm Thiên Mục (Văn Xương / Chủ mục)
 
@@ -418,7 +448,7 @@ module {
                 case null Debug.trap("Cannot find vị trí Kế Thần");
                 case (?v) v;
             };
-            let vanXuong = tim_thien_muc();
+            let vanXuong = tim_thien_muc_van_xuong();
             var can_hoa_duc_index = ke_than_index;
             var thuy_kich_index = 4;
             let buf = Buffer.Buffer<(Text, Text)>(0);
@@ -450,7 +480,7 @@ module {
                 ((CHI.TUAT, CHI.TUAT), 0),
             ];
 
-            let vanXuong = tim_thien_muc();
+            let vanXuong = tim_thien_muc_van_xuong();
             let (_, thuyKich) = tim_khach_muc_thuy_kich();
             let thaiAt = tim_thai_at();
 
@@ -461,7 +491,7 @@ module {
                 diachiValue.put(item.1, val);
             };
 
-            let getCungValue = func (name : Text, checkGianThan : Bool) : (Nat) {
+            let getCungValue = func (name : Text) : (Nat) {
                 switch (batquaiValue.get(name)) {
                     case (?value) {
                         return value;
@@ -469,15 +499,18 @@ module {
                     case (null) {
                         switch (diachiValue.get(name)) {
                             case (?value) {
-                                if (checkGianThan and name == CHI.TY or name == CHI.DAU or name == CHI.NGO or name == CHI.MAO) return value;
-                                // if (value > 1) return value else return 1;
-                                if (checkGianThan) return 1;
+                                // Gián thần: Dần, Thân, Tị, Hợi, Thìn, Tuất, Sửu, Mùi
+                                if (name == CHI.DAN or 
+                                    name == CHI.THAN or 
+                                    name == CHI.TI or 
+                                    name == CHI.HOI or
+                                    name == CHI.THIN or 
+                                    name == CHI.TUAT or 
+                                    name == CHI.SUU or 
+                                    name == CHI.MUI) return 1;
                                 return value;
                             };
-                            case null {
-                                if (checkGianThan) return 1;
-                                return 0;
-                            };
+                            case null Debug.trap("Cung name is not exist! => " # name);
                         };
                     };
                 };
@@ -491,21 +524,21 @@ module {
                 (cung_name, 0);
             };
 
-            let (thai_at_vi_tri_name, thai_at_index) = findCungIndex(thaiAt.cung.0);
-            let cung_before_thai_at = move(11, thai_at_index, -1);
+            let (thai_at_cung_name, thai_at_cung_vitri) = findCungIndex(thaiAt.cung.0);
+            let cung_before_thai_at = move(11, thai_at_cung_vitri, -1);
             
             let buf = Buffer.Buffer<(((Text, Text), Nat), (Nat))>(0);
             // chủ đếm từ văn xương đến cung trước thái ất
             var chu = 0;
             buf.add((("Tìm Chủ - Khởi Văn Xương", ""), 0), (0));
             
-            let van_xuong_index_value = getCungValue(vanXuong.0, true);
+            let van_xuong_index_value = getCungValue(vanXuong.0);
             chu += van_xuong_index_value;
             var cungIndex = findCungIndex(vanXuong.0);
             var p = cungIndex.1;
             buf.add(DIA_BAN_BAT_QUAI_INDEX[p], van_xuong_index_value);
-            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) or p == cung_before_thai_at) {
-            // if (p == cung_before_thai_at) {
+            // if ((p == thai_at_cung_vitri and thai_at_cung_name == cungIndex.0) or p == cung_before_thai_at) {
+            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or p == cung_before_thai_at) {
                 ();
             } else {
                 while (p != cung_before_thai_at) {
@@ -522,12 +555,13 @@ module {
             var khach = 0;
             buf.add((("Tìm Khách - Khởi Thủy Kích", ""), 0), (0));
 
-            var thuy_kich_index_value = getCungValue(thuyKich.0, true);
+            var thuy_kich_index_value = getCungValue(thuyKich.0);
             khach +=thuy_kich_index_value;
             cungIndex := findCungIndex(thuyKich.0);
             p := cungIndex.1;
             buf.add(DIA_BAN_BAT_QUAI_INDEX[p], thuy_kich_index_value);
-            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) or p == cung_before_thai_at) {
+            // if ((p == thai_at_cung_vitri and thai_at_cung_name == cungIndex.0) or p == cung_before_thai_at) {
+            if (_check_thai_at(thai_at_cung_name, thai_at_cung_vitri, cungIndex.0, cungIndex.1) or p == cung_before_thai_at) {
                 ();
             } else {
                 while (p != cung_before_thai_at) {
@@ -539,6 +573,28 @@ module {
             };
 
             return (Buffer.toArray<(((Text, Text), Nat), (Nat))>(buf), (chu, khach));
+        };
+
+        private func _check_thai_at(thai_at_cung_name : Text, 
+                                    thai_at_cung_vitri : Nat, 
+                                    chu_khach_muc_cung_name : Text, 
+                                    chu_khach_muc_cung_vitri : Nat) : Bool {
+            if (thai_at_cung_vitri == chu_khach_muc_cung_vitri){
+                if (thai_at_cung_name == chu_khach_muc_cung_name) {
+                    // trường hợp vào bát quái
+                    return true;
+                } else if (chu_khach_muc_cung_name != CHI.HOI and 
+                    chu_khach_muc_cung_name != CHI.DAN and 
+                    chu_khach_muc_cung_name != CHI.THAN and 
+                    chu_khach_muc_cung_name != CHI.TI) {
+                    // trường hợp cùng cung nhưng là địa chi
+
+                    // Nếu Thiên Mục/ Văn Xương hoặc Thủy Kích/ Khách mục cùng vị trí với Thái Ất nhưng rơi vào chi
+                    // trường hợp là Đoài/Dậu - Khảm/Tý - Ly/Ngọ - Mão/Chấn -> cùng cung với thái ất
+                    return true;
+                };
+            };
+            return false;
         };
 
         public func tim_dai_tuong() : ({
@@ -571,11 +627,13 @@ module {
             let (_, (chu, khach)) = tim_chu_khach();
             ignore if (chu == 0) ("Vô địa");
             ignore if (khach == 0) ("Vô địa");
-            let chu_dai_tuong = if (chu % 10 == 0) (chu / 10) else (chu % 10);
-            let chu_tham_tuong = if ((chu_dai_tuong * 3) % 10 == 0) 1 else ((chu_dai_tuong * 3) % 10);
-            let khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
-            let khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
+            var chu_dai_tuong = if (chu % 10 == 0) (chu / 10) else (chu % 10);
+            // if (chu_dai_tuong == 0) chu_dai_tuong += 1;
+            var chu_tham_tuong = if ((chu_dai_tuong * 3) % 10 == 0) 1 else ((chu_dai_tuong * 3) % 10);
 
+            var khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
+            // if (khach_dai_tuong == 0) khach_dai_tuong += 1;
+            var khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
             return {
                 chu_dai_tuong : (Text, (Text, Nat)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
                 chu_tham_tuong : (Text, (Text, Nat)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
