@@ -12,6 +12,10 @@
 * Date				Author    		Comments
 * ---------------------------------------------------------------------------
 * 26/08/2025		nirvana369 		implement
+* 26/08/2025        nirvana369      Tìm Thái Ất, Tuế Kế (360), Tìm kỷ nguyên Giáp Tý (60), tính Cục (72),
+*                                   tìm Kế Thần (12), tìm Thiên Mục/Văn Xương (Chủ Mục),
+*                                   tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
+* 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -160,6 +164,7 @@ module {
     };
 
     public func test() : async Text {
+        // need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
         let test_cases = [
             {
                 year = 619;
@@ -522,7 +527,7 @@ module {
             cungIndex := findCungIndex(thuyKich.0);
             p := cungIndex.1;
             buf.add(DIA_BAN_BAT_QUAI_INDEX[p], thuy_kich_index_value);
-            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) and p == cung_before_thai_at) {
+            if ((p == thai_at_index and thai_at_vi_tri_name == cungIndex.0) or p == cung_before_thai_at) {
                 ();
             } else {
                 while (p != cung_before_thai_at) {
