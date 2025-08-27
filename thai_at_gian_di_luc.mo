@@ -16,6 +16,7 @@
 *                                   tìm Kế Thần (12), tìm Thiên Mục/Văn Xương (Chủ Mục),
 *                                   tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
 * 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
+* 27/08/2025        nirvana369      implement tim_chu_khach_1()
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -160,6 +161,7 @@ module {
         buf.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach()));
         buf.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+        buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
         Text.join("\n----------------------------\n", buf.vals())
     };
 
@@ -185,6 +187,7 @@ module {
             info.add("Vị trí Khách Mục/Thủy Kích: " # debug_show(thuy_kich));
             info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
             info.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+            info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
             
             buf.add(Text.join("\n", info.vals()));
             i += 1;
@@ -569,6 +572,76 @@ module {
             };
 
             return (Buffer.toArray<(((Text, Text), Nat), (Nat))>(buf), (chu, khach));
+        };
+
+        public func tim_chu_khach_1() : (Nat, Nat) {
+
+            let vanXuong = tim_thien_muc_van_xuong();
+            let (_, thuyKich) = tim_khach_muc_thuy_kich();
+            let thaiAt = (tim_thai_at()).cung;
+            let cungThaiAt = Option.get(Array.indexOf(thaiAt, CLOCK_BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool = (x.0 == y.0 and x.1 == y.1)), thaiAt.1 - 1);
+            let cungTruocThaiAt = move(7, cungThaiAt, -1);
+
+            let findCungIndex = func (cung_dia_ban : (Text, Nat)) : (Nat, Nat) {
+                                    let name = cung_dia_ban.0; // DIA_BAN
+                                    switch(Array.indexOf(cung_dia_ban, CLOCK_BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool = (x.0 == y.0))) {
+                                        case (?vitri) (vitri, CLOCK_BAT_QUAI[vitri].1);
+                                        case null {
+                                            let cung = if (name == CHI.MUI or name == CHI.THAN) {KHON_THO} 
+                                                        else if (name == CHI.TI or name == CHI.THIN) {TON_MOC}
+                                                        else if (name == CHI.HOI or name == CHI.TUAT) {CAN_KIM}
+                                                        else if (name == CHI.SUU or name == CHI.DAN) {CAN_THO}
+                                                        else if (name == CHI.MAO) {CHAN_MOC}
+                                                        else if (name == CHI.NGO) {LY_HOA}
+                                                        else if (name == CHI.DAU) {DOAI_KIM}
+                                                        else {KHAM_THUY};
+
+                                            let cungIndex = Option.get(Array.indexOf(cung, 
+                                                                                     CLOCK_BAT_QUAI, 
+                                                                                     func (x : (Text, Nat), y : (Text, Nat)) : Bool = (x.0 == y.0)), 0);
+
+                                            let cungValue = if (name == CHI.DAN or name == CHI.THAN or 
+                                                                name == CHI.TI or name == CHI.HOI or
+                                                                name == CHI.THIN or name == CHI.TUAT or 
+                                                                name == CHI.SUU or name == CHI.MUI) {
+                                                                // Gián thần: Dần, Thân, Tị, Hợi, Thìn, Tuất, Sửu, Mùi
+                                                                (1)
+                                                            } else {
+                                                                (cung.1)
+                                                            };
+                                            (cungIndex, cungValue);
+                                        };
+                                    };
+                                };
+
+            let cungVanXuong = findCungIndex(vanXuong);
+
+            let cungThuyKich = findCungIndex(thuyKich);
+
+            let chu = if (cungVanXuong.0 == cungThaiAt) {
+                cungVanXuong.1;
+            } else {
+                var vitri = cungVanXuong.0;
+                var c = cungVanXuong.1;
+                while (vitri != cungTruocThaiAt) {
+                    vitri := move(7, vitri, 1);
+                    c += CLOCK_BAT_QUAI[vitri].1;
+                };
+                c;
+            };
+
+            let khach = if (cungThuyKich.0 == cungThaiAt) {
+                cungThuyKich.1;
+            } else {
+                var vitri = cungThuyKich.0;
+                var c = cungThuyKich.1;
+                while (vitri != cungTruocThaiAt) {
+                    vitri := move(7, vitri, 1);
+                    c += CLOCK_BAT_QUAI[vitri].1;
+                };
+                c;
+            };
+            (chu, khach);
         };
 
         private func _check_thai_at(thai_at_cung_name : Text, 
