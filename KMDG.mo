@@ -9,6 +9,9 @@
 * 08/08/2025		nirvana369 		implement
 * 20/08/2025 TODO : Research => Định nghĩa tiết khí : Lập đông, hàn lộ, tiểu hàn
 * 20/08/2025 TODO : BUG => Tính tiết khí ngày : 20/1/2025 10h36 Đại Hàn -> tính sai Tiểu Hàn 
+* 28/08/2025 Confirm: research 20/08/2025 => Kỳ môn độn giáp - đàm liên -> lập đông , hàn lộ 693          +1
+                                             Kỳ môn độn giáp bí kíp toàn thư -> lập đông, hàn lộ 693      +2
+                                             Kỳ môn độn giáp - nguyễn mạnh bảo -> lập đông, hàn lộ 693    +3
 ******************************************************************/
 
 import Array "mo:base/Array";
@@ -126,35 +129,6 @@ module {
         kinh độ có đuôi 0 đều là Khí hay Trung Khí.
 
         ==========================================
-
-        DƯƠNG ĐỘN KHỞI TIẾT CA
-        Đông chí, kinh chập, nhất thất tứ   // 174
-        Tiểu hàn, nhị bát ngũ vi thứ        // 285
-        Đại hàn, xuân phân, tam cửu lục     // 396
-        Lập xuân, bát ngũ nhị tương trục    // 852
-        Thanh minh lập hạ, tứ nhất thất     // 417
-        Vũ thủy, cửu lục tam vô thất        // 963 
-        Tiểu mãn, cốc vũ ngũ nhị bát        // 528
-        Mang chủng, lục tam cửu số chi      // 639
-
-        Nghĩa là: Thuộc về tiết đông chí và kinh chập thì khởi ở số 1, 7, 4. Tiết tiểu hàn thì khởi
-        ở số 2, 8, 5. Tiết đại hàn và xuân phân thì khởi ở số 3, 9, 6. Tiết lập xuân thì khởi ở số 8, 5, 2.
-        Tiết thanh minh và lập hạ thì khởi ở số 4, 1, 7. Tiết ngũ quỷ thì khởi số 9, 6, 3. Tiết tiểu mãn
-        và cọc vũ thì khởi ở số 5, 2, 8. Tiết mang chủng thì khởi ở số 6, 3, 9.
-
-        ÂM ĐỘN KHỞI TIẾT CA
-        Hạ chí, bạch lộ, cửu tam lục        // 936
-        Đại tuyết, tứ thất, nhất cung trú   // 471
-        Đại thử, thu phân, thất nhất tứ     // 714
-        Tiểu thử bát nhị ngũ trung xuy      // 825  
-        Lập đông, hàn lộ, lục tam cửu       // 639
-        Lập thu, nhị ngũ, bát cung tham     // 258
-        Tiểu hàn sương giáng, ngũ bát nhị.  // 582
-        Sứ thử nhất tứ thất nội hàm         // 147
-
-        Nghĩa là: Tiết hạ chí, bạch lộ ở số 9, 6, 3. Tiết đại hàn ở số 7, 1, 4. Tiết đại tuyết bạch lộ
-        ở số 4, 7, 1. Tiết tiểu thử ở số 8, 2, 5. Tiết lập đông hàn lộ ở số 6, 3, 9. Tiết lập thu ở số 2, 5, 8.
-        Tiết tiểu hàn sương giáng ở số 5, 8, 2. Tiết sử thử ở số 1, 4, 7.
     ***/
     let SOLAR_TERMS : [(Text, Float, [Nat])] = [
         // CHẤN
@@ -175,20 +149,15 @@ module {
         ("Bạch Lộ", 165.0, [9, 3, 6]),
         // ĐOÀI
         ("Thu Phân", 180.0, [7, 1, 4]),
-        // Kỳ môn độn giáp - đàm liên -> lập đông , hàn lộ 693          +1
-        // Kỳ môn độn giáp bí kíp toàn thư -> lập đông, hàn lộ 693      +2
-
-        ("Hàn Lộ", 195.0, [6, 9 ,3]),         // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Hàn Lộ", 195.0, [6, 9 ,3]),        
         ("Sương Giáng", 210.0, [5, 8, 2]),
         // CÀN
-        ("Lập Đông", 225.0, [6, 9, 3]),       // Lập đông, hàn lộ, lục tam cửu 639 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Lập Đông", 225.0, [6, 9, 3]),   
         ("Tiểu Tuyết", 240.0, [5, 8, 2]),
         ("Đại Tuyết", 255.0, [4, 7 , 1]), // Hết Âm độn - idx 17
         // KHẢM
         ("Đông Chí", 270.0, [1, 7, 4]), // Dương Độn - idx 18
-        // Kỳ môn độn giáp - đàm liên      -> tiểu hàn 258     +1
-        // Kỳ môn độn giáp bí kíp toàn thư -> tiểu hàn 258, sương giáng 582     +2
-        ("Tiểu Hàn", 285.0, [2, 8, 5]),       // Tiểu hàn sương giáng, ngũ bát nhị 582 => Xác định lại, hoặc chạy đối chiếu với ứng dụng khác
+        ("Tiểu Hàn", 285.0, [2, 8, 5]),     
         ("Đại Hàn", 300.0, [3, 9, 6]),
         // CẤN
         ("Lập Xuân", 315.0, [8, 5, 2]),
@@ -196,6 +165,62 @@ module {
         ("Kinh Trập", 345.0, [1, 7, 4])
     ];
     
+    public func _24_tiet_khi() : async Text {
+        // Initialize arrays for h, m, l (indexed 1-24)
+        var thuong_nguyen = Array.init<Nat>(25, 0);
+        var trung_nguyen = Array.init<Nat>(25, 0);
+        var ha_nguyen = Array.init<Nat>(25, 0);
+        
+        // Given initial values
+        thuong_nguyen[1] := 1;
+        thuong_nguyen[4] := 8;
+        thuong_nguyen[7] := 3;
+        thuong_nguyen[10] := 4;
+        
+        // First loop: fill h (i = 1, 4, 7, 10)
+        for (i in Iter.range(1, 10)) {
+            if (i % 3 == 1 and i <= 10) {
+                thuong_nguyen[i + 1] := thuong_nguyen[i] + 1;
+                
+                if (thuong_nguyen[i] + 2 > 9) {
+                    thuong_nguyen[i + 2] := (thuong_nguyen[i] + 2) - 9;
+                } else {
+                    thuong_nguyen[i + 2] := thuong_nguyen[i] + 2;
+                };
+            };
+        };
+        
+        // Second loop: calculate m, l, and extend h, m, l to 24
+        for (i in Iter.range(1, 12)) {
+            // compute m[i]
+            if (thuong_nguyen[i] + 6 > 9) {
+                trung_nguyen[i] := (thuong_nguyen[i] + 6) - 9;
+            } else {
+                trung_nguyen[i] := thuong_nguyen[i] + 6;
+            };
+            
+            // compute l[i]
+            if (trung_nguyen[i] - 3 <= 0) {
+                ha_nguyen[i] := (trung_nguyen[i] - 3) + 9;
+            } else {
+                ha_nguyen[i] := trung_nguyen[i] - 3;
+            };
+            
+            // extend to 24
+            thuong_nguyen[i + 12] := 10 - thuong_nguyen[i];
+            trung_nguyen[i + 12] := 10 - trung_nguyen[i];
+            ha_nguyen[i + 12] := 10 - ha_nguyen[i];
+        };
+        
+        // Build result string
+        var result = "";
+        for (i in Iter.range(1, 24)) {
+            result := result # debug_show(i) # ": h=" # debug_show(thuong_nguyen[i]) # ", m=" # debug_show(trung_nguyen[i]) # ", l=" # debug_show(ha_nguyen[i]) # "\n";
+        };
+        
+        return result;
+    };
+
     let PALACE_NAMES : [(Nat, Text)] = [
         (1, "Khảm"), (2, "Khôn"), (3, "Chấn"), (4, "Tốn"), 
         (5, "Trung"), (6, "Càn"), (7, "Đoài"), (8, "Cấn"), (9, "Ly")
@@ -945,25 +970,37 @@ module {
         public func calculate_chart(date_time : DateTime) : Text {
 
             log.clear();
-
             chart_data := {
                 chart_data with
                 date_time : DateTime = {
                     year = date_time.year;
                     month = date_time.month;
-                    day = date_time.day - 1;
+                    day = date_time.day;
                     hour = date_time.hour;
                     minute = date_time.minute;
                 };
             };
+            if (solar_longitude_calc_mode == 0) {
+                chart_data := {
+                    chart_data with
+                    date_time : DateTime = {
+                        year = date_time.year;
+                        month = date_time.month;
+                        day = date_time.day - 1; // date_time_convert_to_can_chi(0); => old calculate need day - 1
+                        hour = date_time.hour;
+                        minute = date_time.minute;
+                    };
+                };
+            };
             // 1. Calculate Bazi (Four Pillars)
-            calculate_bazi();
+            // calculate_bazi();
+            // // 3. Calculate Month Ganzhi (This must be after solar term)
+            // calculate_month_ganzhi();
+            date_time_convert_to_can_chi(solar_longitude_calc_mode);
 
             // 2. Determine Solar Term
             find_solar_term_index();
             
-            // 3. Calculate Month Ganzhi (This must be after solar term)
-            calculate_month_ganzhi();
 
             tim_tuan_thu();
 
@@ -1045,6 +1082,23 @@ module {
                 chart_data with 
                 thang = _newGZTime(month_gan_idx, month_branch_idx);
             };
+        };
+
+        private func date_time_convert_to_can_chi(mode : Nat) {
+            let dt = chart_data.date_time;
+            if (mode != 0) {
+                let (canNam, chiNam, canThang, chiThang, canNgay, chiNgay, canGio, chiGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
+                chart_data := {
+                    chart_data with 
+                    nam = _newGZTime(canNam, chiNam);
+                    thang = _newGZTime(canThang, chiThang);
+                    ngay = _newGZTime(canNgay, chiNgay);
+                    gio = _newGZTime(canGio, chiGio);
+                };
+                return;
+            };
+            calculate_bazi();
+            calculate_month_ganzhi();
         };
         
         private func find_solar_term_index() {
