@@ -34,16 +34,16 @@ module {
 
     // Thứ tự bát quái
     // 1 - Càn ; 2 - Ly ; 3 - Cấn ; 4 - Chấn ; 6 - Đoài ; 7 - Khôn ; 8 - Khảm ; 9 - Tốn
-    let CAN_KIM = ("Càn", 1);
-    let LY_HOA = ("Ly", 2);
-    let CAN_THO = ("Cấn", 3);
-    let CHAN_MOC = ("Chấn", 4);
-    let TRUNG = ("Trung", 5);
-    let DOAI_KIM = ("Đoài", 6);
-    let KHON_THO = ("Khôn", 7);
-    let KHAM_THUY = ("Khảm", 8);
-    let TON_MOC = ("Tốn", 9);
-    let BAT_QUAI = [CAN_KIM,
+    public let CAN_KIM = ("Càn", 1);
+    public let LY_HOA = ("Ly", 2);
+    public let CAN_THO = ("Cấn", 3);
+    public let CHAN_MOC = ("Chấn", 4);
+    public let TRUNG = ("Trung", 5);
+    public let DOAI_KIM = ("Đoài", 6);
+    public let KHON_THO = ("Khôn", 7);
+    public let KHAM_THUY = ("Khảm", 8);
+    public let TON_MOC = ("Tốn", 9);
+    public let BAT_QUAI = [CAN_KIM,
                     LY_HOA, 
                     CAN_THO, 
                     CHAN_MOC,
@@ -53,9 +53,9 @@ module {
                     KHAM_THUY, 
                     TON_MOC];
     
-    let CLOCK_BAT_QUAI = [CAN_KIM, KHAM_THUY, CAN_THO, CHAN_MOC, TON_MOC, LY_HOA, KHON_THO, DOAI_KIM];
+    public let CLOCK_BAT_QUAI = [CAN_KIM, KHAM_THUY, CAN_THO, CHAN_MOC, TON_MOC, LY_HOA, KHON_THO, DOAI_KIM];
 
-    let CHI = {
+    public let CHI = {
         TY = "Tý";
         SUU = "Sửu";
         DAN = "Dần";
@@ -70,26 +70,26 @@ module {
         HOI = "Hợi";
     };
 
-    let DIA_BAN : [(Text, Nat)] = [
+    public let DIA_BAN : [(Text, Nat)] = [
         (CAN_KIM.0, 1), (CHI.HOI, 2), (CHI.TY, 3), (CHI.SUU, 4), (CAN_THO.0, 5), (CHI.DAN, 6), 
         (CHI.MAO, 7), (CHI.THIN, 8), (TON_MOC.0, 9), (CHI.TI, 10), (CHI.NGO, 11), (CHI.MUI, 12),
         (KHON_THO.0, 13), (CHI.THAN, 14), (CHI.DAU, 15), (CHI.TUAT, 16)
     ];
 
-    let THAP_LUC_THAN : [(Text, Nat)] = [
+    public let THAP_LUC_THAN : [(Text, Nat)] = [
         ("Âm Đức", 1), ("Đại nghĩa", 2), ("Địa Chu", 3), ("Dương Đức", 4), ("Hòa Đức", 5), ("Lã Thân", 6), 
         ("Cao Tùng", 7), ("Thái Dương", 8), ("Đại Trắc", 9), ("Đại Thần", 10), ("Thiên Uy", 11), ("Thiên Đạo", 12), 
         ("Đại Vũ", 13), ("Vũ Đức", 14), ("Thái Thốc", 15), ("Âm Chủ", 16)
     ];
 
-    let THIEN_CAN : [(Text, Nat)] = [
+    public let THIEN_CAN : [(Text, Nat)] = [
         ("Giáp", 1), ("Ất", 2), ("Bính", 3), ("Đinh", 4), ("Mậu", 5), ("Kỷ", 6), 
         ("Canh", 7), ("Tân", 8), ("Nhâm", 9), ("Quý", 10)
     ];
 
-    let BAT_MON = [("Hưu", 1), ("Sinh", 2), ("Thương", 3), ("Đỗ", 4), ("Cảnh", 5), ("Tử", 6), ("Kinh", 7), ("Khai", 8)];
+    public let BAT_MON = [("Hưu", 1), ("Sinh", 2), ("Thương", 3), ("Đỗ", 4), ("Cảnh", 5), ("Tử", 6), ("Kinh", 7), ("Khai", 8)];
 
-    let CUU_TINH = [("Thiên Bồng", 1),  // Lục Mậu tinh - chủ về việc cảm động không yên, việc thay đổi
+    public let CUU_TINH = [("Thiên Bồng", 1),  // Lục Mậu tinh - chủ về việc cảm động không yên, việc thay đổi
                     ("Thiên Nhuế", 2), // Lục Kỷ tinh - chủ về can qua, binh giáp, trộm cướp, hưng phế 
                     ("Thiên Xung", 3), // Lục Canh tinh - chủ về binh qua sát phạt
                     ("Thiên Phụ", 4),  // Lục Tân tinh - chủ về kho đụn, ngũ cốc (lành)
@@ -99,7 +99,7 @@ module {
                     ("Thiên Nhậm", 8),  // Lục Bính tinh - chủ về âm hình của bậc nữ chúa
                     ("Thiên Anh", 9)]; // Lục Ất tinh - chủ về dương đức của bậc quân nhân
 
-    let DIA_CHI : [(Text, Nat)] = [
+    public let DIA_CHI : [(Text, Nat)] = [
         (CHI.TY, 1), (CHI.SUU, 2), (CHI.DAN, 3), (CHI.MAO, 4), (CHI.THIN, 5), (CHI.TI, 6), 
         (CHI.NGO, 7), (CHI.MUI, 8), (CHI.THAN, 9), (CHI.DAU, 10), (CHI.TUAT, 11), (CHI.HOI, 12)
     ];
@@ -147,6 +147,32 @@ module {
             chi := if (chi == 12) 1 else (chi + 1);
         };
     };
+
+    public func thai_at_vuong_tuong_huu_tu() : (Text) {
+        let _8_tiet = ["Đông Chí", "Lập Xuân", "Xuân Phân", "Lập Hạ", "Hạ Chí", "Lập Thu", "Thu Phân", "Lập Đông"];
+        let state_titles = [("Vượng", 0), ("Tướng", 1), ("Thai", 2), ("Một", 3), ("Tù", 4), ("Tử", 5), ("Hưu", 6), ("Phế", 7)];
+        let _dong_chi_state = [1, 8, 3, 4, 9, 2, 7, 6];
+        let state = Buffer.Buffer<[Nat]>(0);
+        state.add(_dong_chi_state);
+        for (i in Iter.range(1, 7)) {
+            var index = i;
+            var s = Array.tabulate<Nat>(8, func (j : Nat) : Nat {
+                let x = _dong_chi_state[index];
+                index := move(7, index, 1);
+                (x);
+            });
+            state.add(s);
+        };
+        var output = "";
+        for (i in Iter.range(0, _8_tiet.size() - 1)) {
+            let s = state.get(i);
+            output #= "\n" # _8_tiet[i];
+            for (j in Iter.range(0, state_titles.size() - 1)) {
+                output #= " " # Nat.toText(s[j]);
+            };
+        };
+        return output;
+    };
     
     public func thai_at(year : Int) : async (Text) {
         let buf = Buffer.Buffer<Text>(0);
@@ -161,6 +187,7 @@ module {
         buf.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach()));
         buf.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+        buf.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
         Text.join("\n----------------------------\n", buf.vals())
     };
@@ -187,78 +214,13 @@ module {
             info.add("Vị trí Khách Mục/Thủy Kích: " # debug_show(thuy_kich));
             info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
             info.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+            info.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
             info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
             
             buf.add(Text.join("\n", info.vals()));
             i += 1;
         };
         Text.join("\n----------------------------\n", buf.vals())
-    };
-
-    public func test() : async Text {
-        // need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
-        let test_cases = [
-            {
-                year = 619;
-                thai_at = KHON_THO;
-                cuc = 16;
-                van_xuong = DIA_BAN[11];
-                thuy_kich = DIA_BAN[14];
-                chu = 1;
-                khach = 33;
-            },
-            {
-                year = 287;
-                thai_at = KHAM_THUY;
-                cuc = 44;
-                van_xuong = DIA_BAN[3];
-                thuy_kich = DIA_BAN[12];
-                chu = 33;
-                khach = 14;
-            },
-            {
-                year = -114;
-                thai_at = LY_HOA;
-                cuc = 4;
-                van_xuong = DIA_BAN[0];
-                thuy_kich = DIA_BAN[3];
-                chu = 25;
-                khach = 17;
-            },
-            {
-                year = 260;
-                thai_at = KHON_THO;
-                cuc = 17;
-                van_xuong = DIA_BAN[12];
-                thuy_kich = DIA_BAN[1];
-                chu = 7;
-                khach = 27;
-            },
-            {
-                year = 196;
-                thai_at = CAN_KIM;
-                cuc = 25;
-                van_xuong = DIA_BAN[2];
-                thuy_kich = DIA_BAN[1];
-                chu = 29;
-                khach = 19;
-            }
-        ];
-        
-        for (test in test_cases.vals()) {
-            let t = ThaiAt(test.year);
-            let ta = t.tim_thai_at();
-            let cuc = t.tinh_cuc();
-            let van_xuong = t.tim_thien_muc_van_xuong();
-            let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
-            let (_, chu_khach) = t.tim_chu_khach();
-            assert(ta.cung.0 == test.thai_at.0 and ta.cung.1 == test.thai_at.1);
-            assert(cuc.0 == test.cuc);
-            assert(van_xuong.0 == test.van_xuong.0 and van_xuong.1 == test.van_xuong.1);
-            assert(thuy_kich.0 == test.thuy_kich.0 and thuy_kich.1 == test.thuy_kich.1);
-            assert(chu_khach.0 == test.chu and chu_khach.1 == test.khach);
-        };
-        "OK";
     };
 
     public class ThaiAt(year : Int) {
@@ -317,7 +279,7 @@ module {
             var cung_index = 0; // Khởi Càn
             var nam = tk;
             while (nam > 3) {
-                cung_index += 1;
+                cung_index := move(8, cung_index, 1);
                 if (cung_index != 4) nam -= 3; // không phải trung cung
             };
             let stayed = if (nam % 3 == 0) (3) else (nam % 3);
@@ -325,6 +287,48 @@ module {
                 cung = BAT_QUAI[cung_index];
                 stayed_year = stayed;
             };
+        };
+
+        private func _dai_du_thai_at(n : Nat) : Text {
+            let result = Nat.toText(n) # (if (n == 1 or n == 11 or n == 21) {
+                                " -> Bất lợi cho vua";
+                            } else if (n == 2 or n == 12 or n == 22 or n == 32) {
+                                " -> bất lợi cho vương hầu, các bề tôi tướng tể";
+                            } else if (n == 3 or n == 13 or n == 23 or n == 33) {
+                                " -> bất lợi cho hậu phi";
+                            } else if (n == 4 or n == 14 or n == 34) {
+                                " -> bất lợi cho thái tử";
+                            } else if (n == 5 or n == 15 or n == 25) {
+                                " -> bất lợi cho dân";
+                            } else if (n == 6 or n == 16 or n == 26 or n == 36) {
+                                " -> bất lợi cho tướng soái";
+                            } else if (n == 7 or n == 17 or n == 27 or n == 37) {
+                                " -> Bất lợi cho thượng tướng";
+                            } else if (n == 8 or n == 18 or n == 28 or n == 38) {
+                                " -> Bất lợi cho trung tướng";
+                            } else if (n == 9 or n == 19 or n == 29 or n == 39) {
+                                " -> Bất lợi cho hạ tướng";
+                            } else if (n == 10 or n == 20 or n == 30) {
+                                " -> Bất lợi cho quân lính";
+                            } else {
+                                "";
+                            });
+            return result;
+        };
+
+        public func dai_du_thai_at() : ((Nat, Nat), (Text, Nat), Text) {
+            // Tính Đại Du Thái Ất - ở 1 cung 36 năm (12 năm lý thiên, 12 năm lý địa, 12 năm lý nhân)
+            // từ thượng nguyên sai số 34 (tức trừ đi 34)
+            var cung_chu = (tich_nien() + 34) % 2880; // 288 = 36 (nam) * 8 (cung)
+            cung_chu %= 288;
+
+            var cung_index = 6; // Khởi Khôn - cung 7
+            var dai_du = cung_chu;
+            while (dai_du > 36) {
+                cung_index := move(8, cung_index, 1);
+                if (cung_index != 4) dai_du -= 36; // không phải trung cung
+            };
+            ((cung_chu, dai_du), BAT_QUAI[cung_index], _dai_du_thai_at(dai_du));
         };
 
         public func tim_ky_nguyen_giap_ty() : (Text, Nat, Text) {
@@ -414,12 +418,12 @@ module {
             var dia_ban_index = start - 1;
             while (count < tm) {
                 dia_ban_index := move(15, dia_ban_index, 1);
-                if (start == DIA_BAN[14 - 1].0) {
+                if (start == DIA_BAN[14 - 1].1) {
                     // khởi Thân gặp Càn(1) - Khôn(13) thì +2
                     if (dia_ban_index == 0 or dia_ban_index == 12) {
                         count := count + 1;
                     };
-                } else if (start == DIA_BAN[6 - 1].0) {
+                } else if (start == DIA_BAN[6 - 1].1) {
                     // Khởi Dần gặp Cấn(5) - Tốn(9) thì +2
                     if (dia_ban_index == 4 or dia_ban_index == 9) {
                         count := count + 1;
@@ -574,6 +578,73 @@ module {
             return (Buffer.toArray<(((Text, Text), Nat), (Nat))>(buf), (chu, khach));
         };
 
+        private func _check_thai_at(thai_at_cung_name : Text, 
+                                    thai_at_cung_vitri : Nat, 
+                                    chu_khach_muc_cung_name : Text, 
+                                    chu_khach_muc_cung_vitri : Nat) : Bool {
+            if (thai_at_cung_vitri == chu_khach_muc_cung_vitri){
+                if (thai_at_cung_name == chu_khach_muc_cung_name) {
+                    // trường hợp vào bát quái
+                    return true;
+                } else if (chu_khach_muc_cung_name != CHI.HOI and 
+                    chu_khach_muc_cung_name != CHI.DAN and 
+                    chu_khach_muc_cung_name != CHI.THAN and 
+                    chu_khach_muc_cung_name != CHI.TI) {
+                    // trường hợp cùng cung nhưng là địa chi
+
+                    // Nếu Thiên Mục/ Văn Xương hoặc Thủy Kích/ Khách mục cùng vị trí với Thái Ất nhưng rơi vào chi
+                    // trường hợp là Đoài/Dậu - Khảm/Tý - Ly/Ngọ - Mão/Chấn -> cùng cung với thái ất
+                    return true;
+                };
+            };
+            return false;
+        };
+
+        public func tim_dai_tuong() : ({
+                chu_dai_tuong : (Text, (Text, Nat));
+                chu_tham_tuong : (Text, (Text, Nat));
+                khach_dai_tuong : (Text, (Text, Nat));
+                khach_tham_tuong : (Text, (Text, Nat));
+            }) {
+            /*
+                ĐT(Y) = (Chủ || Khách) % 10
+                Tính Đại Tướng dùng Chủ/ Khách % 10, số lẻ là cung an. 
+                Nếu Chủ/ Khách là 10 thì lấy 10 - 9 = 1 (bỏ 10 lấy 1), an tại cung số 1.
+                Tính Tham Tướng thì dùng kết quả tính Đại Tướng nhân 3, lấy số lẻ. Tính Phát, Bách, Tù, Quan để xem tốt xấu.
+
+                VD : Tìm Đại Tướng - Tham Tướng năm Canh Ngọ - 1570 => Chủ = 33 - Khách = 10
+                - Chủ Đại Tướng = 33 % 10 = 3 cung Cấn cùng cung với Thái Ất => Tù, có tang vong, điều xấu.
+                - Chủ Tham Tướng = 3 * 3 = 9 cung Tốn cùng cung với Văn Xương => Tù, xấu.
+
+                - Khách Đại Tướng = 10 - 9 = 1 cung Càn => Lành, tướng phát vì không gặp Tù, Bách, Yểm, Kích..
+                - Khách Tham Tướng  = 1 * 3 = 3 cung Cấn cùng cung với Thái Ất => Tù, tiểu tướng bất lợi.
+
+                Cục này Thái Ất trợ Chủ, nhưng chủ bất hòa, 2 tướng gặp Tù, nên không thể hành động. Khách hòa, tướng phát => Lợi về Khách. Chủ nên an cư, hành động sau.
+
+                Từ Càn đến Thìn là Trong. Từ Tốn đến Tuất là Ngoài
+                Thái Ất ở cung 1, 8, 3, 4 là Thiên Nội là trợ Chủ, không thể đem quân công phạt, muốn đánh địch không nên khởi động trước.
+                Thái Ất ở cung 9, 2, 7, 6 là Thiên Ngoại là trợ Khách, lợi cho việc lấy binh đánh dẹp, muốn đánh địch, không nên tiến sau mà phải đánh trước.
+
+            */
+
+            let (_, (chu, khach)) = tim_chu_khach();
+            ignore if (chu == 0) ("Vô địa");
+            ignore if (khach == 0) ("Vô địa");
+            var chu_dai_tuong = if (chu % 10 == 0) (chu / 10) else (chu % 10);
+            // if (chu_dai_tuong == 0) chu_dai_tuong += 1;
+            var chu_tham_tuong = if ((chu_dai_tuong * 3) % 10 == 0) 1 else ((chu_dai_tuong * 3) % 10);
+
+            var khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
+            // if (khach_dai_tuong == 0) khach_dai_tuong += 1;
+            var khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
+            return {
+                chu_dai_tuong : (Text, (Text, Nat)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
+                chu_tham_tuong : (Text, (Text, Nat)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
+                khach_dai_tuong : (Text, (Text, Nat)) = ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]);
+                khach_tham_tuong : (Text, (Text, Nat)) = ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1]);
+            };
+        };
+
         public func tim_chu_khach_1() : (Nat, Nat) {
 
             let vanXuong = tim_thien_muc_van_xuong();
@@ -642,73 +713,6 @@ module {
                 c;
             };
             (chu, khach);
-        };
-
-        private func _check_thai_at(thai_at_cung_name : Text, 
-                                    thai_at_cung_vitri : Nat, 
-                                    chu_khach_muc_cung_name : Text, 
-                                    chu_khach_muc_cung_vitri : Nat) : Bool {
-            if (thai_at_cung_vitri == chu_khach_muc_cung_vitri){
-                if (thai_at_cung_name == chu_khach_muc_cung_name) {
-                    // trường hợp vào bát quái
-                    return true;
-                } else if (chu_khach_muc_cung_name != CHI.HOI and 
-                    chu_khach_muc_cung_name != CHI.DAN and 
-                    chu_khach_muc_cung_name != CHI.THAN and 
-                    chu_khach_muc_cung_name != CHI.TI) {
-                    // trường hợp cùng cung nhưng là địa chi
-
-                    // Nếu Thiên Mục/ Văn Xương hoặc Thủy Kích/ Khách mục cùng vị trí với Thái Ất nhưng rơi vào chi
-                    // trường hợp là Đoài/Dậu - Khảm/Tý - Ly/Ngọ - Mão/Chấn -> cùng cung với thái ất
-                    return true;
-                };
-            };
-            return false;
-        };
-
-        public func tim_dai_tuong() : ({
-                chu_dai_tuong : (Text, (Text, Nat));
-                chu_tham_tuong : (Text, (Text, Nat));
-                khach_dai_tuong : (Text, (Text, Nat));
-                khach_tham_tuong : (Text, (Text, Nat));
-            }) {
-            /*
-                ĐT(Y) = (Chủ || Khách) % 10
-                Tính Đại Tướng dùng Chủ/ Khách % 10, số lẻ là cung an. 
-                Nếu Chủ/ Khách là 10 thì lấy 10 - 9 = 1 (bỏ 10 lấy 1), an tại cung số 1.
-                Tính Tham Tướng thì dùng kết quả tính Đại Tướng nhân 3, lấy số lẻ. Tính Phát, Bách, Tù, Quan để xem tốt xấu.
-
-                VD : Tìm Đại Tướng - Tham Tướng năm Canh Ngọ - 1570 => Chủ = 33 - Khách = 10
-                - Chủ Đại Tướng = 33 % 10 = 3 cung Cấn cùng cung với Thái Ất => Tù, có tang vong, điều xấu.
-                - Chủ Tham Tướng = 3 * 3 = 9 cung Tốn cùng cung với Văn Xương => Tù, xấu.
-
-                - Khách Đại Tướng = 10 - 9 = 1 cung Càn => Lành, tướng phát vì không gặp Tù, Bách, Yểm, Kích..
-                - Khách Tham Tướng  = 1 * 3 = 3 cung Cấn cùng cung với Thái Ất => Tù, tiểu tướng bất lợi.
-
-                Cục này Thái Ất trợ Chủ, nhưng chủ bất hòa, 2 tướng gặp Tù, nên không thể hành động. Khách hòa, tướng phát => Lợi về Khách. Chủ nên an cư, hành động sau.
-
-                Từ Càn đến Thìn là Trong. Từ Tốn đến Tuất là Ngoài
-                Thái Ất ở cung 1, 8, 3, 4 là Thiên Nội là trợ Chủ, không thể đem quân công phạt, muốn đánh địch không nên khởi động trước.
-                Thái Ất ở cung 9, 2, 7, 6 là Thiên Ngoại là trợ Khách, lợi cho việc lấy binh đánh dẹp, muốn đánh địch, không nên tiến sau mà phải đánh trước.
-
-            */
-
-            let (_, (chu, khach)) = tim_chu_khach();
-            ignore if (chu == 0) ("Vô địa");
-            ignore if (khach == 0) ("Vô địa");
-            var chu_dai_tuong = if (chu % 10 == 0) (chu / 10) else (chu % 10);
-            // if (chu_dai_tuong == 0) chu_dai_tuong += 1;
-            var chu_tham_tuong = if ((chu_dai_tuong * 3) % 10 == 0) 1 else ((chu_dai_tuong * 3) % 10);
-
-            var khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
-            // if (khach_dai_tuong == 0) khach_dai_tuong += 1;
-            var khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
-            return {
-                chu_dai_tuong : (Text, (Text, Nat)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
-                chu_tham_tuong : (Text, (Text, Nat)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
-                khach_dai_tuong : (Text, (Text, Nat)) = ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]);
-                khach_tham_tuong : (Text, (Text, Nat)) = ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1]);
-            };
         };
     };
 };
