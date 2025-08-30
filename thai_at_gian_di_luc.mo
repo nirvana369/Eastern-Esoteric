@@ -19,7 +19,8 @@
 * 27/08/2025        nirvana369      implement tim_chu_khach_1()
 * 30/08/2025        nirvana369      Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
 *                                   implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
-* 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                                   
+* 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                  
+* 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()                 
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -107,6 +108,20 @@ module {
         (CHI.NGO, 7), (CHI.MUI, 8), (CHI.THAN, 9), (CHI.DAU, 10), (CHI.TUAT, 11), (CHI.HOI, 12)
     ];
 
+    
+
+    let map_CHI_CAN = func (chi : Text) : (Text, Nat) {
+        let cung = if (chi == CHI.MUI or chi == CHI.THAN or chi == KHON_THO.0) {KHON_THO} 
+                                                    else if (chi == CHI.TI or chi == CHI.THIN or chi == TON_MOC.0) {TON_MOC}
+                                                    else if (chi == CHI.HOI or chi == CHI.TUAT or chi == CAN_KIM.0) {CAN_KIM}
+                                                    else if (chi == CHI.SUU or chi == CHI.DAN or chi == CAN_THO.0) {CAN_THO}
+                                                    else if (chi == CHI.MAO or chi == CHAN_MOC.0) {CHAN_MOC}
+                                                    else if (chi == CHI.NGO or chi == LY_HOA.0) {LY_HOA}
+                                                    else if (chi == CHI.DAU or chi == DOAI_KIM.0) {DOAI_KIM}
+                                                    else {KHAM_THUY};
+        return cung;
+    };
+
     private func move(max : Nat, s : Nat, step : Int) : Nat {
         var ret = s;
         var count = step;
@@ -186,69 +201,69 @@ module {
     };
     
     public func thai_at(year : Int) : async (Text) {
-        let buf = Buffer.Buffer<Text>(0);
+        _print(year);
+    };
+
+    private func _print(year : Int) : (Text) {
+        let viewer = BatQuaiViewer();
+
+        let info = Buffer.Buffer<Text>(0);
         let t = ThaiAt(year);
         let thai_at = t.tim_thai_at();
+        let thai_at_cung = thai_at.cung;
+        let (_, ke_than) = t.tim_ke_than();
+        let (cuc, _, _) = t.tinh_cuc();
+        let van_xuong = t.tim_thien_muc_van_xuong();
+        let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
+        let (_, chu_khach) = t.tim_chu_khach();
         let (truc_su, bat_mon) = t.bat_mon();
-        buf.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(year) # ": " # debug_show(t.tich_nien()));
-        buf.add("Tuế Kế: " # debug_show(t.tue_ke()));
-        buf.add("Vị trí Thái Ất: " # debug_show() # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
-        buf.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
-        buf.add("Cục : " # debug_show(t.tinh_cuc()));
-        buf.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()));
-        buf.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong()));
-        buf.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich()));
-        buf.add("Bát Môn: " # debug_show(bat_mon));
-        let (info, chu_khach) = t.tim_chu_khach();
-        buf.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
-        buf.add("Tìm Chủ - Khách Info: " # debug_show(info));
         let dai_tuong = t.tim_dai_tuong();
-        buf.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
+        let dai_du = t.dai_du_thai_at();
+        let tieu_du = t.tieu_du_thai_at();
+        info.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(year) # ": " # debug_show(t.tich_nien()));
+        info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
+        info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
+        info.add("Cục : " # debug_show(cuc));
+        info.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()) # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(ke_than.0))));
+        info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(van_xuong.0))));
+        info.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(thuy_kich.0))));
+        info.add("Bát Môn: " # debug_show(bat_mon));
+        info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
+        info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
         for (dt in dai_tuong.vals()) {
-            buf.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
+            info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
         };
-        buf.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
-        buf.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
-        buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
-        Text.join("\n----------------------------\n", buf.vals())
+        info.add("Đại du Thái Ất: " # debug_show(dai_du));
+        info.add("Tiểu du Thái Ất: " # debug_show(tieu_du));
+        info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
+
+        viewer.push(TRUNG.0, "Chủ: " # debug_show(chu_khach.0));
+        viewer.push(TRUNG.0, "Khách: " # debug_show(chu_khach.1));
+        viewer.push(map_CHI_CAN(thai_at_cung.0).0,"Thái Ất");
+        viewer.push(map_CHI_CAN(ke_than.0).0,"Kế Thần");
+        viewer.push(map_CHI_CAN(van_xuong.0).0,"Văn Xương");
+        viewer.push(map_CHI_CAN(thuy_kich.0).0,"Thủy Kích");
+        viewer.push(map_CHI_CAN(dai_du.1.0).0,"Đại Du");
+        viewer.push(map_CHI_CAN(tieu_du.0).0,"Tiểu Du");
+        for ((name, dt) in dai_tuong.vals()) {
+            viewer.push(map_CHI_CAN(dt.0).0, name);
+        };
+        for ((mon, cung) in bat_mon.vals()) {
+            viewer.push(map_CHI_CAN(cung.0).0, mon);
+        };
+        info.add(viewer.output());
+        
+        Text.join("\n----------------------------\n", info.vals())
     };
 
     public func from_to(year_from : Int, year_to : Int) : async (Text) {
         let buf = Buffer.Buffer<Text>(0);
         var i = year_from;
         while (i <= year_to) {
-            let info = Buffer.Buffer<Text>(0);
-            let t = ThaiAt(i);
-            let thai_at = t.tim_thai_at();
-            let thai_at_cung = thai_at.cung;
-            let (_, ke_than) = t.tim_ke_than();
-            let (cuc, _, _) = t.tinh_cuc();
-            let van_xuong = t.tim_thien_muc_van_xuong();
-            let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
-            let (_, chu_khach) = t.tim_chu_khach();
-            let (truc_su, bat_mon) = t.bat_mon();
-            info.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(i) # ": " # debug_show(t.tich_nien()));
-            info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
-            info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
-            info.add("Cục : " # debug_show(cuc));
-            info.add("Vị trí Kế Thần: " # debug_show(ke_than));
-            info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(van_xuong));
-            info.add("Vị trí Khách Mục/Thủy Kích: " # debug_show(thuy_kich));
-            info.add("Bát Môn: " # debug_show(bat_mon));
-            info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
-            let dai_tuong = t.tim_dai_tuong();
-            info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
-            for (dt in dai_tuong.vals()) {
-                info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
-            };
-            info.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
-            info.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
-            info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
-            
-            buf.add(Text.join("\n", info.vals()));
+            buf.add(_print(i));
             i += 1;
         };
-        Text.join("\n----------------------------\n", buf.vals())
+        Text.join("\n*********************************************************************************\n", buf.vals())
     };
 
     public class ThaiAt(year : Int) {
@@ -317,7 +332,15 @@ module {
             };
         };
 
-        private func _dai_du_thai_at(n : Nat) : Text {
+        public func thai_at_nguyet_ke() : () {
+            /***
+            *   Tìm Thái Ất - Nguyệt kế
+            *   Do Thái ất du hành 3 tháng/cung
+            *   
+            ***/
+        };
+
+        private func _dai_du_thai_at(n : Nat, cung_dai_du : (Text, Nat)) : Text {
             let result = Nat.toText(n) # (if (n == 1 or n == 11 or n == 21) {
                                 " -> Bất lợi cho vua";
                             } else if (n == 2 or n == 12 or n == 22 or n == 32) {
@@ -345,6 +368,8 @@ module {
                                 let truc_phu = "Đại Du cùng Trực Phù thì đao binh, hỏa hoạn, hạn hán";
                                 let tu_than = "Đại Du cùng Tứ Thần thì hạn lụt, đối rét";
                                 let tieu_du = "Đại Du cũng Tiểu Du thì binh đao, lụt, hạn, tai họa lớn lao";
+                                let td = tieu_du_thai_at();
+                                if (td.0 == cung_dai_du.0 and td.1 == cung_dai_du.1) return tieu_du;
                                 ("");
                             });
             return result;
@@ -362,7 +387,7 @@ module {
                 cung_index := move(8, cung_index, 1);
                 if (cung_index != 4) dai_du -= 36; // không phải trung cung
             };
-            ((cung_chu, dai_du), BAT_QUAI[cung_index], _dai_du_thai_at(dai_du));
+            ((cung_chu, dai_du), BAT_QUAI[cung_index], _dai_du_thai_at(dai_du, BAT_QUAI[cung_index]));
         };
 
         public func tieu_du_thai_at() : (Text, Nat) {
@@ -745,10 +770,10 @@ module {
             // if (khach_dai_tuong == 0) khach_dai_tuong += 1;
             var khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
             return [
-                ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]),
-                ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]),
-                ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]),
-                ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1])
+                ("C.Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]),
+                ("C.Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]),
+                ("K.Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]),
+                ("K.Tham Tướng", BAT_QUAI[khach_tham_tuong - 1])
             ];
         };
 
@@ -765,14 +790,7 @@ module {
                                     switch(Array.indexOf(cung_dia_ban, CLOCK_BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool = (x.0 == y.0))) {
                                         case (?vitri) (vitri, CLOCK_BAT_QUAI[vitri].1);
                                         case null {
-                                            let cung = if (name == CHI.MUI or name == CHI.THAN) {KHON_THO} 
-                                                        else if (name == CHI.TI or name == CHI.THIN) {TON_MOC}
-                                                        else if (name == CHI.HOI or name == CHI.TUAT) {CAN_KIM}
-                                                        else if (name == CHI.SUU or name == CHI.DAN) {CAN_THO}
-                                                        else if (name == CHI.MAO) {CHAN_MOC}
-                                                        else if (name == CHI.NGO) {LY_HOA}
-                                                        else if (name == CHI.DAU) {DOAI_KIM}
-                                                        else {KHAM_THUY};
+                                            let cung = map_CHI_CAN(name);
 
                                             let cungIndex = Option.get(Array.indexOf(cung, 
                                                                                      CLOCK_BAT_QUAI, 
@@ -821,5 +839,123 @@ module {
             };
             (chu, khach);
         };
+    };
+
+    public class BatQuaiViewer() {
+        let map = HashMap.HashMap<Text, [Text]>(0, Text.equal, Text.hash);
+
+        public func push(key : Text, value : Text) {
+            switch(map.get(key)) {
+                case (?data) {
+                    let val = Array.flatten([data, [value]]);
+                    map.put(key, val);
+                };
+                case (null) map.put(key, [value]);
+            };
+        };
+
+        public func put(id : Nat, value : Text) {
+            let key = switch(Array.find<(Text, Nat)>(BAT_QUAI, func (x : (Text, Nat)) : Bool {
+                return x.1 == id;
+            })) {
+                case (?(id, _)) id;
+                case null "1";
+            };
+            switch(map.get(key)) {
+                case (?data) {
+                    let val = Array.flatten([data, [value]]);
+                    map.put(key, val);
+                };
+                case (null) map.put(key, [value]);
+            };
+        };
+
+        func _init () {
+            for (q in BAT_QUAI.vals()) {
+                push(q.0, q.0 # "(" # Nat.toText(q.1) # ")");
+            };
+        };
+
+        public func output() : Text {
+            let buf = Buffer.Buffer<(Text, Nat, [Text])>(0); 
+            for (q in BAT_QUAI.vals()) {
+                buf.add((q.0, q.1, Option.get(map.get(q.0), [])));
+            };
+            let trando = ThaiAtTranDo(Buffer.toArray(buf));
+            return trando.lapTran();
+        };
+
+        _init();
+    };
+
+    public class ThaiAtTranDo(palaces: [(Text, Nat, [Text])]) {
+        // [THIEN CAN, ID ,[DATA PRINT]]
+        let CELL_WIDTH = 30;
+        // Hàm tìm Palace theo number
+        func findPalace(num : Nat) : (Text, Nat, [Text]) {
+            switch (Array.find<(Text, Nat, [Text])>(palaces, func (p) { p.1 == num })) {
+                case (?p) p;
+                case null { Debug.trap("Invalid data") }; // Không bao giờ xảy ra với dữ liệu đã cho
+            }
+        };
+        
+        // Định nghĩa các trường cần hiển thị theo thứ tự
+        let fields : [(Text, (Text) -> Text)] = [
+            ("", func (p: Text) : Text { p }),
+            ("", func (p: Text) : Text { p }),
+            ("", func (p: Text) : Text { p }),
+            ("", func (p: Text) : Text { p }),
+            ("", func (p: Text) : Text { p })
+            // Thêm trường mới ở đây
+        ];
+
+        // Định nghĩa layout bát quái đồ
+        let layout : [[Nat]] = [
+            [9, 2, 7],
+            [4, 5, 6],
+            [3, 8, 1]
+        ];
+
+        func createHorizontalLine() : Text {
+            "+" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "+\n"
+        };
+
+        func formatCell(content: Text) : Text {
+            let padding = (CELL_WIDTH - Text.size(content)) / 2;
+            let leftPad = Text.join("" ,Array.tabulate<Text>(padding, func _ = ".").vals());
+            let rightPad = Text.join("" ,Array.tabulate<Text>(CELL_WIDTH - padding - Text.size(content), func _ = ".").vals());
+            leftPad # content # rightPad
+        };
+
+        func createRow(rowIds : [Nat], fieldIndex: Nat) : Text {
+            var row = "|";
+            for (num in rowIds.vals()) {
+                let p = findPalace(num);
+                let content = if (fieldIndex < p.2.size()) p.2[fieldIndex] else "";
+                row := row # formatCell(content) # "|";
+            };
+            row # "\n"
+        };
+
+        public func lapTran() : Text {
+            var output = createHorizontalLine();
+            var maxRow = 0;
+            for (item in palaces.vals()) {
+                if (item.2.size() > maxRow) {
+                    maxRow := item.2.size() - 1;
+                };
+            };
+            
+            for (row in layout.vals()) {
+                for (fieldIndex in Iter.range(0, maxRow)) {
+                    output := output # createRow(row, fieldIndex);
+                };
+                output := output # "|" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "|\n";
+            };
+            
+            output := output # createHorizontalLine();
+            output
+        };
+
     };
 };
