@@ -311,14 +311,19 @@ module {
                             } else if (n == 10 or n == 20 or n == 30) {
                                 " -> Bất lợi cho quân lính";
                             } else {
-                                "";
+                                let ngu_phuc = "Đại Du gặp Ngũ Phúc thì tai họa binh đao giáng vào địa phận đối xung";
+                                let thai_at = "Đại Du cùng Thái Ất thì địa phận năm đó có binh đao lớn, trời biến động nhiều sự quái dị";
+                                let dia_at = "Đại Du cùng Địa Ất thì giặc dã, trộm cướp, sâu bệnh";
+                                let truc_phu = "Đại Du cùng Trực Phù thì đao binh, hỏa hoạn, hạn hán";
+                                let tu_than = "Đại Du cùng Tứ Thần thì hạn lụt, đối rét";
+                                let tieu_du = "Đại Du cũng Tiểu Du thì binh đao, lụt, hạn, tai họa lớn lao";
                             });
             return result;
         };
 
         public func dai_du_thai_at() : ((Nat, Nat), (Text, Nat), Text) {
             // Tính Đại Du Thái Ất - ở 1 cung 36 năm (12 năm lý thiên, 12 năm lý địa, 12 năm lý nhân)
-            // từ thượng nguyên sai số 34 (tức trừ đi 34)
+            // từ thượng nguyên đưa vào sai số cung 34 (tức thêm vào 34)
             var cung_chu = (tich_nien() + 34) % 2880; // 288 = 36 (nam) * 8 (cung)
             cung_chu %= 288;
 
@@ -329,6 +334,10 @@ module {
                 if (cung_index != 4) dai_du -= 36; // không phải trung cung
             };
             ((cung_chu, dai_du), BAT_QUAI[cung_index], _dai_du_thai_at(dai_du));
+        };
+
+        public func tieu_du_thai_at() : () {
+            // Tính Tiểu Du Thái Ất 
         };
 
         public func tim_ky_nguyen_giap_ty() : (Text, Nat, Text) {
