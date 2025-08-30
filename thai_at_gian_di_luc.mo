@@ -18,8 +18,8 @@
 * 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
 * 27/08/2025        nirvana369      implement tim_chu_khach_1()
 * 30/08/2025        nirvana369      Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
-*                                   implement : dai_du_thai_at(), tieu_du_thai_at()
-*                                    
+*                                   implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
+* 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                                   
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -90,7 +90,7 @@ module {
         ("Canh", 7), ("Tân", 8), ("Nhâm", 9), ("Quý", 10)
     ];
 
-    public let BAT_MON = [("Hưu", 1), ("Sinh", 2), ("Thương", 3), ("Đỗ", 4), ("Cảnh", 5), ("Tử", 6), ("Kinh", 7), ("Khai", 8)];
+    public let BAT_MON = [("Khai", 1), ("Hưu", 8), ("Sinh", 3), ("Thương", 4), ("Đỗ", 9), ("Cảnh", 2), ("Tử", 7), ("Kinh", 6)];
 
     public let CUU_TINH = [("Thiên Bồng", 1),  // Lục Mậu tinh - chủ về việc cảm động không yên, việc thay đổi
                     ("Thiên Nhuế", 2), // Lục Kỷ tinh - chủ về can qua, binh giáp, trộm cướp, hưng phế 
@@ -176,20 +176,37 @@ module {
         };
         return output;
     };
+
+    let find_bat_mon = func (bat_mon : [(Text, (Text, Nat))], cung : (Text, Nat)) : Text {
+        switch (Array.find<(Text, (Text, Nat))>(bat_mon, func (x : (Text, (Text, Nat))) : Bool = (x.1.0 == cung.0 and x.1.1 == cung.1))) {
+            case (?(mon, _)) return mon;
+            case null return "";
+        };
+        "";
+    };
     
     public func thai_at(year : Int) : async (Text) {
         let buf = Buffer.Buffer<Text>(0);
         let t = ThaiAt(year);
+        let thai_at = t.tim_thai_at();
+        let (truc_su, bat_mon) = t.bat_mon();
         buf.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(year) # ": " # debug_show(t.tich_nien()));
         buf.add("Tuế Kế: " # debug_show(t.tue_ke()));
-        buf.add("Vị trí Thái Ất: " # debug_show(t.tim_thai_at()));
+        buf.add("Vị trí Thái Ất: " # debug_show() # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
         buf.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
         buf.add("Cục : " # debug_show(t.tinh_cuc()));
         buf.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()));
         buf.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong()));
         buf.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich()));
-        buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach()));
-        buf.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+        buf.add("Bát Môn: " # debug_show(bat_mon));
+        let (info, chu_khach) = t.tim_chu_khach();
+        buf.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
+        buf.add("Tìm Chủ - Khách Info: " # debug_show(info));
+        let dai_tuong = t.tim_dai_tuong();
+        buf.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
+        for (dt in dai_tuong.vals()) {
+            buf.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
+        };
         buf.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
         buf.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
@@ -209,15 +226,21 @@ module {
             let van_xuong = t.tim_thien_muc_van_xuong();
             let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
             let (_, chu_khach) = t.tim_chu_khach();
+            let (truc_su, bat_mon) = t.bat_mon();
             info.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(i) # ": " # debug_show(t.tich_nien()));
-            info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung));
+            info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
             info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
             info.add("Cục : " # debug_show(cuc));
             info.add("Vị trí Kế Thần: " # debug_show(ke_than));
             info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(van_xuong));
             info.add("Vị trí Khách Mục/Thủy Kích: " # debug_show(thuy_kich));
+            info.add("Bát Môn: " # debug_show(bat_mon));
             info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
-            info.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
+            let dai_tuong = t.tim_dai_tuong();
+            info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
+            for (dt in dai_tuong.vals()) {
+                info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
+            };
             info.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
             info.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
             info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
@@ -322,6 +345,7 @@ module {
                                 let truc_phu = "Đại Du cùng Trực Phù thì đao binh, hỏa hoạn, hạn hán";
                                 let tu_than = "Đại Du cùng Tứ Thần thì hạn lụt, đối rét";
                                 let tieu_du = "Đại Du cũng Tiểu Du thì binh đao, lụt, hạn, tai họa lớn lao";
+                                ("");
                             });
             return result;
         };
@@ -376,6 +400,70 @@ module {
                 };
             });
             return (ky_nguyen_name, tueKe % 60, current_year)
+        };
+
+        public func bat_mon() : (Text, [(Text, (Text, Nat))]) {
+            /*
+            *   Lấy tích niên, dùng phép đại tiểu chu % 2400, lớn hơn 240 thì dùng phép tiểu chu % 240,
+            *   số dư nhỏ hơn 240 thì trừ dần đi 30 đồng thời đếm từ Khai môn, đến khi < 30, dừng ở Môn
+            *   nào thì lấy môn đó làm Trực Sử, đưa về vị trí (gia) Thái Ất, rồi đếm thuận an các cung còn lại
+            *   theo chiều kim đồng hồ.
+            */
+            var du = tich_nien() % 2400;
+            if (du > 240) du %= 240;
+            var mon_index = 0; // Khai môn
+            while (du > 30) {
+                mon_index := move(7, mon_index, 1);
+                du -= 30;
+            };
+            let truc_su = BAT_MON[mon_index];
+            let bat_mon = Buffer.Buffer<(Text, (Text, Nat))>(0);
+            let thai_at = tim_thai_at();
+            var thai_at_index = switch (Array.indexOf(thai_at.cung, CLOCK_BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool {
+                return x.0 == y.0 and x.1 == y.1;
+            })) {
+                case (?p) p;
+                case null Debug.trap("Không tìm thấy vị trí Thái Ất: Kiểm tra lại mapping giữa BAT_QUAI[] và CLOCK_BAT_QUAI[]");
+            };
+            for (i in Iter.range(0, 7)) {
+                bat_mon.add((BAT_MON[mon_index].0, CLOCK_BAT_QUAI[thai_at_index]));
+                mon_index := move(7, mon_index, 1);
+                thai_at_index := move(7, thai_at_index, 1);
+            };
+            (truc_su.0, Buffer.toArray(bat_mon));
+        };
+
+        public func phuong_vi_phuc_tinh() : (Text) {
+            let tueKe = tue_ke();
+            var phuc_tinh = "";
+            _move_luc_thap_hoa_giap(null, null, null, func (index : Nat, can : Text, chi : Text) : () {
+                if (index == (tueKe % 60)) {
+                    phuc_tinh := (if (can == "Giáp") {
+                        CHI.DAN
+                    } else if (can == "Ất") {
+                        CHI.SUU
+                    } else if (can == "Bính") {
+                        // Bính ở Tý
+                        CHI.TY
+                    } else if (can == "Đinh") {
+                        CHI.HOI
+                    } else if (can == "Mậu") {
+                        CHI.THAN
+                    } else if (can == "Kỷ") {
+                        CHI.MUI
+                    } else if (can == "Canh") {
+                        CHI.NGO
+                    } else if (can == "Tân") {
+                        //  Tân ở Tị
+                        CHI.TI
+                    } else if (can == "Nhâm") {
+                        CHI.THIN
+                    } else if (can == "Quý") {
+                        CHI.MAO
+                    } else (""));
+                };
+            });
+            return phuc_tinh;
         };
 
         public func tinh_cuc() : (Nat, Text, Text) {
@@ -624,12 +712,7 @@ module {
             return false;
         };
 
-        public func tim_dai_tuong() : ({
-                chu_dai_tuong : (Text, (Text, Nat));
-                chu_tham_tuong : (Text, (Text, Nat));
-                khach_dai_tuong : (Text, (Text, Nat));
-                khach_tham_tuong : (Text, (Text, Nat));
-            }) {
+        public func tim_dai_tuong() : ([(Text, (Text, Nat))]) {
             /*
                 ĐT(Y) = (Chủ || Khách) % 10
                 Tính Đại Tướng dùng Chủ/ Khách % 10, số lẻ là cung an. 
@@ -661,12 +744,12 @@ module {
             var khach_dai_tuong = if (khach % 10 == 0) (khach / 10) else (khach % 10); 
             // if (khach_dai_tuong == 0) khach_dai_tuong += 1;
             var khach_tham_tuong = if ((khach_dai_tuong * 3) % 10 == 0) 1 else ((khach_dai_tuong * 3) % 10);
-            return {
-                chu_dai_tuong : (Text, (Text, Nat)) = ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]);
-                chu_tham_tuong : (Text, (Text, Nat)) = ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]);
-                khach_dai_tuong : (Text, (Text, Nat)) = ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]);
-                khach_tham_tuong : (Text, (Text, Nat)) = ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1]);
-            };
+            return [
+                ("Chủ Đại Tướng", BAT_QUAI[chu_dai_tuong - 1]),
+                ("Chủ Tham Tướng", BAT_QUAI[chu_tham_tuong - 1]),
+                ("Khách Đại Tướng", BAT_QUAI[khach_dai_tuong - 1]),
+                ("Khách Tham Tướng", BAT_QUAI[khach_tham_tuong - 1])
+            ];
         };
 
         public func tim_chu_khach_1() : (Nat, Nat) {
