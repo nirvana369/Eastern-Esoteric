@@ -17,6 +17,9 @@
 *                                   tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
 * 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
 * 27/08/2025        nirvana369      implement tim_chu_khach_1()
+* 30/08/2025        nirvana369      Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
+*                                   implement : dai_du_thai_at(), tieu_du_thai_at()
+*                                    
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -188,6 +191,7 @@ module {
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach()));
         buf.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
         buf.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
+        buf.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
         buf.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
         Text.join("\n----------------------------\n", buf.vals())
     };
@@ -215,6 +219,7 @@ module {
             info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
             info.add("Tìm Đại Tướng: " # debug_show(t.tim_dai_tuong()));
             info.add("Đại du Thái Ất: " # debug_show(t.dai_du_thai_at()));
+            info.add("Tiểu du Thái Ất: " # debug_show(t.tieu_du_thai_at()));
             info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
             
             buf.add(Text.join("\n", info.vals()));
@@ -336,8 +341,18 @@ module {
             ((cung_chu, dai_du), BAT_QUAI[cung_index], _dai_du_thai_at(dai_du));
         };
 
-        public func tieu_du_thai_at() : () {
+        public func tieu_du_thai_at() : (Text, Nat) {
             // Tính Tiểu Du Thái Ất 
+            // Mốc 714 - Tiểu Du ở Càn (1) - 36 năm đi qua 1 cung
+            // Mốc 930 - Tiểu Du ở Khôn (7)...
+            let direction = if (year < 714) -1 else 1;
+            var tieu_du = (year - 714) * direction;
+            var cung_index = 0;
+            while (tieu_du > 36) {
+                cung_index := move(8, cung_index, direction);
+                if (cung_index != 4) tieu_du -= 36; // không phải trung cung
+            };
+            return (BAT_QUAI[cung_index]);
         };
 
         public func tim_ky_nguyen_giap_ty() : (Text, Nat, Text) {
