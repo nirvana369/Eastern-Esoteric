@@ -3,6 +3,19 @@ import Int "mo:base/Int";
 
 module {
     
+    public let CAN = {
+        GIAP = "Giáp";
+        AT =  "Ất";
+        BINH =  "Bính"; 
+        DINH = "Đinh";
+        MAU = "Mậu";
+        KY = "Kỷ";
+        CANH = "Canh";
+        TAN = "Tân";
+        NHAM =  "Nhâm"; 
+        QUY = "Quý";
+    };
+
     public let CAN_KIM = ("Càn", 1);
     public let LY_HOA = ("Ly", 2);
     public let CAN_THO = ("Cấn", 3);
@@ -21,9 +34,25 @@ module {
                     KHON_THO, 
                     KHAM_THUY, 
                     TON_MOC];
-    public let THIEN_CAN : [Text] = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
-    public let DIA_CHI : [Text] = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
     
+
+    public let CHI = {
+        TY = "Tý";
+        SUU = "Sửu";
+        DAN = "Dần";
+        MAO = "Mão";
+        THIN = "Thìn";
+        TI = "Tị";
+        NGO = "Ngọ";
+        MUI = "Mùi";
+        THAN = "Thân";
+        DAU = "Dậu";
+        TUAT = "Tuất";
+        HOI = "Hợi";
+    };
+
+    public let THIEN_CAN : [Text] = [CAN.GIAP, CAN.AT, CAN.BINH, CAN.DINH, CAN.MAU, CAN.KY, CAN.CANH, CAN.TAN, CAN.NHAM, CAN.QUY];
+    public let DIA_CHI : [Text] = [CHI.TY, CHI.SUU, CHI.DAN, CHI.MAO, CHI.THIN, CHI.TI, CHI.NGO, CHI.MUI, CHI.THAN, CHI.DAU, CHI.TUAT, CHI.HOI];
 
     public type DateTime = {
         year : Nat;
