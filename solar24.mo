@@ -3,6 +3,7 @@ import Iter "mo:base/Iter";
 import Int "mo:base/Int";
 import Float "mo:base/Float";
 import Buffer "mo:base/Buffer";
+import Debug "mo:base/Debug";
 import LichHND "LichHND";
 import AmLich "AmLich";
 import Types "types";
@@ -254,13 +255,7 @@ module {
 
         // Find the solar term immediately before current position
         var current_term_index = 0;
-        // label f for (i in SOLAR_TERMS.keys()) {
-        //     if (sun_long >= SOLAR_TERMS[i].1) {
-        //         current_term_index := i;
-        //     } else {
-        //         break f;
-        //     };
-        // };
+
         var maxDegree : Float = 0;
         for (i in solarTerms.keys()) {
             if (sun_long >= solarTerms[i].1 and solarTerms[i].1 >= maxDegree) {
@@ -307,10 +302,9 @@ module {
         if (i == 0) return max;
         return i - 1;
     };
+    
 
     public func bat_quai_vuong_tuong_huu_tu() : ([[Nat]]) {
-        let _8_tiet = ["Đông Chí", "Lập Xuân", "Xuân Phân", "Lập Hạ", "Hạ Chí", "Lập Thu", "Thu Phân", "Lập Đông"];
-        let state_titles = [("Vượng", 0), ("Tướng", 1), ("Thai", 2), ("Một", 3), ("Tù", 4), ("Tử", 5), ("Hưu", 6), ("Phế", 7)];
         let _dong_chi_state = [1, 8, 3, 4, 9, 2, 7, 6];
         let state = Buffer.Buffer<[Nat]>(0);
         state.add(_dong_chi_state);
@@ -324,5 +318,30 @@ module {
             state.add(s);
         };
         Buffer.toArray(state)
+    };
+
+    public func bat_quai_state(cung : Text, tiet_khi : Text) : Text {
+        let _8_tiet = ["Đông Chí", "Lập Xuân", "Xuân Phân", "Lập Hạ", "Hạ Chí", "Lập Thu", "Thu Phân", "Lập Đông"];
+        let state_titles = [("Vượng", 0), ("Tướng", 1), ("Thai", 2), ("Một", 3), ("Tù", 4), ("Tử", 5), ("Hưu", 6), ("Phế", 7)];
+        let cung_index = switch (Array.indexOf((cung, 0), Types.BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool {
+            return x.0 == y.0;
+        })) {
+            case (?i) i;
+            case (null) Debug.trap("Cung not found: " # cung);
+        };
+        let bat_quai_cung  = Types.BAT_QUAI[cung_index];
+        let tiet_khi_index = switch (Array.indexOf(tiet_khi, WEATHER_TERMS_NAME, func (x : Text, y : Text) : Bool {
+            return x == y;
+        })) {
+            case (?i) i / 3; // map từ 24 tiết về 8 tiết
+            case (null) Debug.trap("Cung not found: " # cung);
+        };
+        let state = bat_quai_vuong_tuong_huu_tu();
+        for (i in Iter.range(0, state_titles.size() - 1)) {
+            if (state[tiet_khi_index][i] == bat_quai_cung.1) {
+                return state_titles[i].0;
+            };
+        };
+        ("Not found!");
     };
 }
