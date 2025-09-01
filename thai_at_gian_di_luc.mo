@@ -12,16 +12,17 @@
 * Date				Author    		Comments
 * ---------------------------------------------------------------------------
 * 26/08/2025		nirvana369 		implement
-* 26/08/2025        nirvana369      Tìm Thái Ất, Tuế Kế (360), Tìm kỷ nguyên Giáp Tý (60), tính Cục (72),
-*                                   tìm Kế Thần (12), tìm Thiên Mục/Văn Xương (Chủ Mục),
-*                                   tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
+* 26/08/2025        nirvana369      + Tìm Thái Ất, Tuế Kế (360), Tìm kỷ nguyên Giáp Tý (60), tính Cục (72),
+*                                   + tìm Kế Thần (12), tìm Thiên Mục/Văn Xương (Chủ Mục),
+*                                   + tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
 * 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
 * 27/08/2025        nirvana369      implement tim_chu_khach_1()
-* 30/08/2025        nirvana369      Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
-*                                   implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
+* 30/08/2025        nirvana369      + Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
+*                                   + implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
 * 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                  
 * 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()           
-* 01/09/2025        nirvana369      Implement Nguyệt kế & Thời kế      
+* 01/09/2025        nirvana369      + Implement Nguyệt kế & Thời kế
+*                                   + Trạng thái Vượng, Tướng, Thai, Một, Tù, Tử, Hưu, Phế
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -51,15 +52,7 @@ module {
     public let KHON_THO = Types.KHON_THO;
     public let KHAM_THUY = Types.KHAM_THUY;
     public let TON_MOC = Types.TON_MOC;
-    public let BAT_QUAI = [CAN_KIM,
-                    LY_HOA, 
-                    CAN_THO, 
-                    CHAN_MOC,
-                    TRUNG,
-                    DOAI_KIM, 
-                    KHON_THO, 
-                    KHAM_THUY, 
-                    TON_MOC];
+    public let BAT_QUAI = Types.BAT_QUAI;
     
     public let CLOCK_BAT_QUAI = [CAN_KIM, KHAM_THUY, CAN_THO, CHAN_MOC, TON_MOC, LY_HOA, KHON_THO, DOAI_KIM];
 
@@ -978,8 +971,12 @@ module {
 
         func _init () {
             for (q in BAT_QUAI.vals()) {
-                let (_, (tiet_khi, _, _)) = t.getSolarTerm();
-                push(q.0, q.0 # "(" # Nat.toText(q.1) # ")  -  " # SOLAR24.bat_quai_state(q.0, tiet_khi));
+                push(q.0, q.0 # "(" # Nat.toText(q.1) # ")");
+                if (q.1 != 5) {
+                    // Chỉ tính trạng thái 8 cung trừ trung cung (5)
+                    let (_, (tiet_khi, _, _)) = t.getSolarTerm();
+                    push(q.0, SOLAR24.bat_quai_state(q.0, tiet_khi));
+                };
             };
         };
 
