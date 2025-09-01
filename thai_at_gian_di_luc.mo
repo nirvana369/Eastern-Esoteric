@@ -277,9 +277,9 @@ module {
             return Int.toText(hour) # ":" # Int.toText(minute) # " " #Int.toText(day) # "/" # Int.toText(month) # "/" # Int.toText(year);
         };
 
-        public func getSolarTerm() : Text {
+        public func getSolarTerm() : (Nat, (Text, Float, [Int]))  {
             let solarTerm = SOLAR24.getSolarTerm(year, month, day, hour, minute);
-            return (debug_show(solarTerm))
+            return solarTerm;
         };
 
         public func tich_nien() : Nat {
@@ -978,7 +978,8 @@ module {
 
         func _init () {
             for (q in BAT_QUAI.vals()) {
-                push(q.0, q.0 # "(" # Nat.toText(q.1) # ")");
+                let (_, (tiet_khi, _, _)) = t.getSolarTerm();
+                push(q.0, q.0 # "(" # Nat.toText(q.1) # ")  -  " # SOLAR24.bat_quai_state(q.0, tiet_khi));
             };
         };
 
@@ -1112,7 +1113,7 @@ module {
         info.add("Dương Lịch: " # t.getDuongLich());
         info.add("Âm Lịch: " # t.getAmLich());
         info.add("Âm Lịch GanZhi: " # t.getGZAmLich());
-        info.add("Tiết khí: " # t.getSolarTerm());
+        info.add("Tiết khí: " # debug_show(t.getSolarTerm()));
         info.add("Vị trí Thái Ất: " # debug_show(thai_at) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
         info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
         info.add("Cục : " # debug_show(cuc));
