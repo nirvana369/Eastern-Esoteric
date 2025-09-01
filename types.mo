@@ -12,6 +12,15 @@ module {
     public let KHON_THO = ("Khôn", 7);
     public let KHAM_THUY = ("Khảm", 8);
     public let TON_MOC = ("Tốn", 9);
+    public let BAT_QUAI = [CAN_KIM,
+                    LY_HOA, 
+                    CAN_THO, 
+                    CHAN_MOC,
+                    TRUNG,
+                    DOAI_KIM, 
+                    KHON_THO, 
+                    KHAM_THUY, 
+                    TON_MOC];
     public let THIEN_CAN : [Text] = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
     public let DIA_CHI : [Text] = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
     
