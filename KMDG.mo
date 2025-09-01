@@ -27,6 +27,7 @@ import HashMap "mo:base/HashMap";
 import Hash "mo:base/Hash";
 import LichHND "LichHND";
 import AmLich "AmLich";
+import Types "types";
 
 module {
     // --- Constants ---
@@ -35,8 +36,8 @@ module {
     let DISPLAY_ORDER : [Nat] = [4, 9, 2, 3, 5, 7, 8, 1, 6];
     
     // Basic Astrological Data
-    let THIEN_CAN : [Text] = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
-    let DIA_CHI : [Text] = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    let THIEN_CAN : [Text] = Types.THIEN_CAN;
+    let DIA_CHI : [Text] = Types.DIA_CHI;
     let DOORS : [(Nat, Text)] = [(1, "Hưu"), 
                                     (8, "Sinh"), 
                                     (3, "Thương"), 
@@ -67,19 +68,9 @@ module {
         #ThauDiaKyMon;
     };
 
-    public type GZTimeIndex = {
-        can : Nat; // can - mapping with THIEN_CAN
-        chi : Nat;  // chi - mapping with DIA_CHI
-    };
+    type GZTimeIndex = Types.GZTimeIndex;
 
-    func _newGZTime(g : Nat, z : Nat) : GZTimeIndex {
-        if (g + 1 > 10) Debug.trap("Thiên Can index từ 0-9");
-        if (z + 1 > 12) Debug.trap("Địa Chi index từ 0-11");
-        return {
-            can = g;
-            chi = z;
-        };
-    };
+    let _newGZTime = Types._newGZTime;
 
     // Sorted by degrees for easier lookup
     // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
@@ -1087,13 +1078,13 @@ module {
         private func date_time_convert_to_can_chi(mode : Nat) {
             let dt = chart_data.date_time;
             if (mode != 0) {
-                let (canNam, chiNam, canThang, chiThang, canNgay, chiNgay, canGio, chiGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
+                let (gzNam, gzThang, gzNgay, gzGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
                 chart_data := {
                     chart_data with 
-                    nam = _newGZTime(canNam, chiNam);
-                    thang = _newGZTime(canThang, chiThang);
-                    ngay = _newGZTime(canNgay, chiNgay);
-                    gio = _newGZTime(canGio, chiGio);
+                    nam = gzNam;
+                    thang = gzThang;
+                    ngay = gzNgay;
+                    gio = gzGio;
                 };
                 return;
             };
@@ -1188,12 +1179,12 @@ module {
                 isLeap = lunarLeap;
             };
 
-            let (canNam, chiNam, canThang, chiThang, canNgay, chiNgay, canGio, chiGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
-            let canChiIndex = {
-                nam = _newGZTime(canNam, chiNam);
-                thang = _newGZTime(canThang, chiThang);
-                ngay = _newGZTime(canNgay, chiNgay);
-                gio = _newGZTime(canGio, chiGio);
+            let (gzNam, gzThang, gzNgay, gzGio) = AmLich.ngayThangNamCanChi(dt.day, dt.month, dt.year, dt.hour, 7);
+            let canChiIndex = { 
+                nam = gzNam;
+                thang = gzThang;
+                ngay = gzNgay;
+                gio = gzGio;
             };
 
             let canChi = {
