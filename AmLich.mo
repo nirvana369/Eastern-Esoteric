@@ -5,6 +5,7 @@ import Float "mo:base/Float";
 import Iter "mo:base/Iter";
 import Char "mo:base/Char";
 import LichHND "LichHND";
+import Types "types";
 
 module {
     
@@ -110,14 +111,14 @@ module {
         {id = 12; tenChi = "Hợi"; tenHanh = "T"; menhChu = ?"Cự môn"; thanChu = ?"Thiên cơ"; amDuong = -1}
     ];
     
-    public func ngayThangNam(nn : Nat, tt : Nat, nnnn : Nat, duongLich : Bool, timeZone : Nat) : (Nat, Nat, Nat, Nat) {
+    public func ngayThangNam(nn : Int, tt : Int, nnnn : Int, duongLich : Bool, timeZone : Int) : (Int, Int, Int, Int) {
         var thangNhuan : Nat = 0;
         // if nnnn > 1000 and nnnn < 3000 and nn > 0 and \
         if (nn > 0 and nn < 32 and tt < 13 and tt > 0) {
             if (duongLich == true) {
                 // Assuming S2L returns (Nat, Nat, Nat, Nat)
                 let (lunarDay, lunarMonth, lunarYear, lunarLeap) = LichHND.S2L(nn, tt, nnnn, Float.fromInt(timeZone));
-                return (Int.abs(lunarDay), Int.abs(lunarMonth), Int.abs(lunarYear), Int.abs(lunarLeap));
+                return (lunarDay, lunarMonth, lunarYear, lunarLeap);
             } else {
                 return (nn, tt, nnnn, thangNhuan);
             };
@@ -127,7 +128,7 @@ module {
         };
     };
 
-    public func canChiNgay(nn : Nat, tt : Nat, nnnn : Nat, duongLich : Bool, timeZone : Nat, thangNhuan : Bool) : (Nat, Nat) {
+    public func canChiNgay(nn : Int, tt : Int, nnnn : Int, duongLich : Bool, timeZone : Int, thangNhuan : Bool) : (Nat, Nat) {
         var new_nn = nn;
         var new_tt = tt;
         var new_nnnn = nnnn;
@@ -135,9 +136,9 @@ module {
         if (duongLich == false) {
             // Assuming L2S returns (Nat, Nat, Nat)
             let (day, month, year) = LichHND.L2S(nn, tt, nnnn, if (thangNhuan) 1 else 0, Float.fromInt(timeZone));
-            new_nn := Int.abs(day);
-            new_tt := Int.abs(month);
-            new_nnnn := Int.abs(year);
+            new_nn := day;
+            new_tt := month;
+            new_nnnn := year;
         };
         
         let jd = LichHND.jdFromDate(new_nn, new_tt, new_nnnn);
@@ -146,10 +147,10 @@ module {
         return (Int.abs(canNgay), Int.abs(chiNgay));
     };
     
-    public func canChiGio(canNgay : Nat, gio : Nat) : (Nat, Nat) {
+    public func canChiGio(canNgay : Nat, gio : Int) : (Nat, Nat) {
         let hour_zhi_idx = (gio + 1) / 2 % 12;
         let hour_gan_idx = (canNgay * 2 + hour_zhi_idx) % 10;
-        return (hour_gan_idx, hour_zhi_idx);
+        return (Int.abs(hour_gan_idx), Int.abs(hour_zhi_idx));
     };
     
     public func chuyen_gio_duong_sang_am(gio : Nat) : Nat {
@@ -180,11 +181,14 @@ module {
         };
     };
     
-    public func ngayThangNamCanChi(nn : Nat, tt : Nat, nnnn : Nat, hour : Nat, timeZone : Nat) : (Nat, Nat, Nat, Nat, Nat, Nat, Nat, Nat) {
+    public func ngayThangNamCanChi(nn : Int, tt : Int, nnnn : Int, hour : Int, timeZone : Int) : (Types.GZTimeIndex, 
+                                                                                                    Types.GZTimeIndex, 
+                                                                                                    Types.GZTimeIndex, 
+                                                                                                    Types.GZTimeIndex) {
         var new_nn = nn;
         var new_tt = tt;
         var new_nnnn = nnnn;
-        var thangNhuan : Nat = 0;
+        var thangNhuan : Int = 0;
 
         let jd = Int.abs(LichHND.jdFromDate(new_nn, new_tt, new_nnnn));
         let canNgay = (jd + 9) % 10;
@@ -206,7 +210,10 @@ module {
 
         let (canGio, chiGio) = canChiGio(canNgay, hour);
         
-        return (canNam, chiNam, canThang, chiThang, canNgay, chiNgay, canGio, chiGio);
+        return (Types._newGZTimeInt(canNam, chiNam),
+                Types._newGZTimeInt(canThang, chiThang), 
+                Types._newGZTimeInt(canNgay, chiNgay), 
+                Types._newGZTimeInt(canGio, chiGio));
     };
     
     public func tim_can_cung(canNam : Nat) : [Nat] {
