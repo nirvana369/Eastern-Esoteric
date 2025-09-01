@@ -56,20 +56,7 @@ module {
     
     public let CLOCK_BAT_QUAI = [CAN_KIM, KHAM_THUY, CAN_THO, CHAN_MOC, TON_MOC, LY_HOA, KHON_THO, DOAI_KIM];
 
-    public let CHI = {
-        TY = "Tý";
-        SUU = "Sửu";
-        DAN = "Dần";
-        MAO = "Mão";
-        THIN = "Thìn";
-        TI = "Tị";
-        NGO = "Ngọ";
-        MUI = "Mùi";
-        THAN = "Thân";
-        DAU = "Dậu";
-        TUAT = "Tuất";
-        HOI = "Hợi";
-    };
+    public let CHI = Types.CHI;
 
     public let DIA_BAN : [(Text, Nat)] = [
         (CAN_KIM.0, 1), (CHI.HOI, 2), (CHI.TY, 3), (CHI.SUU, 4), (CAN_THO.0, 5), (CHI.DAN, 6), 
@@ -84,8 +71,8 @@ module {
     ];
 
     public let THIEN_CAN : [(Text, Nat)] = [
-        ("Giáp", 1), ("Ất", 2), ("Bính", 3), ("Đinh", 4), ("Mậu", 5), ("Kỷ", 6), 
-        ("Canh", 7), ("Tân", 8), ("Nhâm", 9), ("Quý", 10)
+        (Types.CAN.GIAP, 1), (Types.CAN.AT, 2), (Types.CAN.BINH, 3), (Types.CAN.DINH, 4), (Types.CAN.MAU, 5), (Types.CAN.KY, 6), 
+        (Types.CAN.CANH, 7), (Types.CAN.TAN, 8), (Types.CAN.NHAM, 9), (Types.CAN.QUY, 10)
     ];
 
     public let BAT_MON = [("Khai", 1), ("Hưu", 8), ("Sinh", 3), ("Thương", 4), ("Đỗ", 9), ("Cảnh", 2), ("Tử", 7), ("Kinh", 6)];
@@ -141,14 +128,14 @@ module {
         return i - 1;
     };
 
-    private func _move_luc_thap_hoa_giap(_can : ?Nat, _chi : ?Nat, _stop : ?Nat, callback : (Nat, Types.GZTimeIndex) -> ()) : () {
+    private func _move_luc_thap_hoa_giap(_can : ?Nat, _chi : ?Nat, _stop : ?Nat, callback : (Nat, Types.GZTimeIndex, () -> ()) -> ()) : () {
         var can = switch (_can) {
             case (?v) v;
-            case null 1;
+            case null 0;
         };
         var chi = switch (_chi) {
             case (?v) v;
-            case null 1;
+            case null 0;
         };
         let stop = switch (_stop) {
             case (?v) v;
@@ -157,36 +144,12 @@ module {
         var index = 0;
         while (index < stop) {
             index := index + 1;
-            callback(index, Types._newGZTime(can - 1, chi - 1));
-            can := if (can == 10) 1 else (can + 1);
-            chi := if (chi == 12) 1 else (chi + 1);
-        };
-    };
-
-    public func thai_at_vuong_tuong_huu_tu() : (Text) {
-        let _8_tiet = ["Đông Chí", "Lập Xuân", "Xuân Phân", "Lập Hạ", "Hạ Chí", "Lập Thu", "Thu Phân", "Lập Đông"];
-        let state_titles = [("Vượng", 0), ("Tướng", 1), ("Thai", 2), ("Một", 3), ("Tù", 4), ("Tử", 5), ("Hưu", 6), ("Phế", 7)];
-        let _dong_chi_state = [1, 8, 3, 4, 9, 2, 7, 6];
-        let state = Buffer.Buffer<[Nat]>(0);
-        state.add(_dong_chi_state);
-        for (i in Iter.range(1, 7)) {
-            var index = i;
-            var s = Array.tabulate<Nat>(8, func (j : Nat) : Nat {
-                let x = _dong_chi_state[index];
-                index := move(7, index, 1);
-                (x);
+            callback(index, Types._newGZTime(can, chi), func () {
+                return ();
             });
-            state.add(s);
+            can := if (can == 9) 0 else (can + 1);
+            chi := if (chi == 11) 0 else (chi + 1);
         };
-        var output = "";
-        for (i in Iter.range(0, _8_tiet.size() - 1)) {
-            let s = state.get(i);
-            output #= "\n" # _8_tiet[i];
-            for (j in Iter.range(0, state_titles.size() - 1)) {
-                output #= " " # Nat.toText(s[j]);
-            };
-        };
-        return output;
     };
 
     let find_bat_mon = func (bat_mon : [(Text, (Text, Nat))], cung : (Text, Nat)) : Text {
@@ -306,14 +269,17 @@ module {
                     let (solar_index, _) = SOLAR24.getSolarTerm(year, month, day, hour, minute);
                     if (solar_index > 12) is_duong_cuc := false;
 
-                    let (gzNam, gzThang, gzNgay, gzGio) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
+                    let (_, _, gzNgay, _) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
                     var so = 0;
-                    _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex) {
+                    _move_luc_thap_hoa_giap(null, null, ?181, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) {
                         if (gzNgay.can == gz.can and gzNgay.chi == gz.chi) {
                             so := id;
+                            terminate();
                         };
                     });
-                    (so - 1) * 12 + 2;
+                    var t = Int.abs(((hour + 1) * 60 + minute) / 2); // hour + 1 vì phép tính giờ Dương, phải tính từ Tí là 11h đến 12h ngày hiện tại, do phép lấy số đã trừ đi 1 (bắt đầu từ giờ Tí)
+                    t := (if (t % 60 == 0) (t / 60) else (t / 60 + 1));
+                    return (so - 1) * 12 + t;
                 };
                 case (_) { // #NIEN_KE is default mode
                     // T(1683) = (3600 * 2821)
@@ -395,8 +361,11 @@ module {
             };
             var can_chi_thang_current = "";
             tMonth += (thang - 1) + 3;    // cộng 3 vì tính từ tháng 11 âm đến tháng dần là tháng giêng theo lịch dương (input-> thang:Int)
-            _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex){
-                if (id == tMonth)  can_chi_thang_current := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
+            _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()){
+                if (id == tMonth)  {
+                    can_chi_thang_current := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
+                    terminate();
+                };
             });
 
             // tính cục
@@ -487,9 +456,10 @@ module {
                                         "Trung nguyên";
                                     };
             var current_year = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : () {
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) : () {
                 if (id == (tueKe % 60)) {
-                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0
+                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
+                    terminate();
                 };
             });
             return (ky_nguyen_name, tueKe % 60, current_year)
@@ -529,31 +499,32 @@ module {
         public func phuong_vi_phuc_tinh() : (Text) {
             let tueKe = tue_ke();
             var phuc_tinh = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : () {
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) : () {
                 if (id == (tueKe % 60)) {
-                    phuc_tinh := (if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[0]) {
+                    phuc_tinh := (if (THIEN_CAN[gz.can].0 == Types.CAN.GIAP) {
                         CHI.DAN
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[1]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.AT) {
                         CHI.SUU
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[2]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.BINH) {
                         // Bính ở Tý
                         CHI.TY
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[3]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.DINH) {
                         CHI.HOI
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[4]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.MAU) {
                         CHI.THAN
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[5]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.KY) {
                         CHI.MUI
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[6]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.CANH) {
                         CHI.NGO
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[7]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.TAN) {
                         //  Tân ở Tị
                         CHI.TI
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[8]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.NHAM) {
                         CHI.THIN
-                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[9]) {
+                    } else if (THIEN_CAN[gz.can].0 == Types.CAN.QUY) {
                         CHI.MAO
                     } else (""));
+                    terminate();
                 };
             });
             return phuc_tinh;
@@ -573,10 +544,11 @@ module {
             let chi_index = 0; // tý
             let nguyen = THIEN_CAN[can_index].0 # " " # DIA_CHI[chi_index].0;
             var current_year = "";
-            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (id : Nat, gz : Types.GZTimeIndex): () {
+            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()): () {
                 if (id == (tueKe % 72)) {
                     // found
-                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0
+                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
+                    terminate();
                 };
             });
             let cuc = if (tueKe % 72 == 0) (72) else (tueKe % 72); 
