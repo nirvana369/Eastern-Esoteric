@@ -20,7 +20,8 @@
 * 30/08/2025        nirvana369      Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
 *                                   implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
 * 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                  
-* 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()                 
+* 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()           
+* 01/09/2025        nirvana369      Implement Nguyệt kế & Thời kế      
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -33,20 +34,23 @@ import Nat "mo:base/Nat";
 import HashMap "mo:base/HashMap";
 import Option "mo:base/Option";
 import Hash "mo:base/Hash";
+import AmLich "AmLich";
+import SOLAR24 "solar24";
+import Types "types";
 
 module {
 
     // Thứ tự bát quái
     // 1 - Càn ; 2 - Ly ; 3 - Cấn ; 4 - Chấn ; 6 - Đoài ; 7 - Khôn ; 8 - Khảm ; 9 - Tốn
-    public let CAN_KIM = ("Càn", 1);
-    public let LY_HOA = ("Ly", 2);
-    public let CAN_THO = ("Cấn", 3);
-    public let CHAN_MOC = ("Chấn", 4);
-    public let TRUNG = ("Trung", 5);
-    public let DOAI_KIM = ("Đoài", 6);
-    public let KHON_THO = ("Khôn", 7);
-    public let KHAM_THUY = ("Khảm", 8);
-    public let TON_MOC = ("Tốn", 9);
+    public let CAN_KIM = Types.CAN_KIM;
+    public let LY_HOA = Types.LY_HOA;
+    public let CAN_THO = Types.CAN_THO;
+    public let CHAN_MOC = Types.CHAN_MOC;
+    public let TRUNG = Types.TRUNG;
+    public let DOAI_KIM = Types.DOAI_KIM;
+    public let KHON_THO = Types.KHON_THO;
+    public let KHAM_THUY = Types.KHAM_THUY;
+    public let TON_MOC = Types.TON_MOC;
     public let BAT_QUAI = [CAN_KIM,
                     LY_HOA, 
                     CAN_THO, 
@@ -144,7 +148,7 @@ module {
         return i - 1;
     };
 
-    private func _move_luc_thap_hoa_giap(_can : ?Nat, _chi : ?Nat, _stop : ?Nat, callback : (Nat, Text, Text) -> ()) : () {
+    private func _move_luc_thap_hoa_giap(_can : ?Nat, _chi : ?Nat, _stop : ?Nat, callback : (Nat, Types.GZTimeIndex) -> ()) : () {
         var can = switch (_can) {
             case (?v) v;
             case null 1;
@@ -160,7 +164,7 @@ module {
         var index = 0;
         while (index < stop) {
             index := index + 1;
-            callback(index, THIEN_CAN[can - 1].0, DIA_CHI[chi - 1].0);
+            callback(index, Types._newGZTime(can - 1, chi - 1));
             can := if (can == 10) 1 else (can + 1);
             chi := if (chi == 12) 1 else (chi + 1);
         };
@@ -199,72 +203,6 @@ module {
         };
         "";
     };
-    
-    public func thai_at(year : Int) : async (Text) {
-        _print(year);
-    };
-
-    private func _print(year : Int) : (Text) {
-        let viewer = BatQuaiViewer();
-
-        let info = Buffer.Buffer<Text>(0);
-        let t = ThaiAt(year);
-        let thai_at = t.tim_thai_at();
-        let thai_at_cung = thai_at.cung;
-        let (_, ke_than) = t.tim_ke_than();
-        let (cuc, _, _) = t.tinh_cuc();
-        let van_xuong = t.tim_thien_muc_van_xuong();
-        let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
-        let (_, chu_khach) = t.tim_chu_khach();
-        let (truc_su, bat_mon) = t.bat_mon();
-        let dai_tuong = t.tim_dai_tuong();
-        let dai_du = t.dai_du_thai_at();
-        let tieu_du = t.tieu_du_thai_at();
-        info.add("Số năm từ Thượng cổ Giáp Tý đến " #debug_show(year) # ": " # debug_show(t.tich_nien()));
-        info.add("Vị trí Thái Ất: " # debug_show(thai_at_cung) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
-        info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
-        info.add("Cục : " # debug_show(cuc));
-        info.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()) # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(ke_than.0))));
-        info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(van_xuong.0))));
-        info.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(thuy_kich.0))));
-        info.add("Bát Môn: " # debug_show(bat_mon));
-        info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
-        info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
-        for (dt in dai_tuong.vals()) {
-            info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
-        };
-        info.add("Đại du Thái Ất: " # debug_show(dai_du));
-        info.add("Tiểu du Thái Ất: " # debug_show(tieu_du));
-        info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
-
-        viewer.push(TRUNG.0, "Chủ: " # debug_show(chu_khach.0));
-        viewer.push(TRUNG.0, "Khách: " # debug_show(chu_khach.1));
-        viewer.push(map_CHI_CAN(thai_at_cung.0).0,"Thái Ất");
-        viewer.push(map_CHI_CAN(ke_than.0).0,"Kế Thần");
-        viewer.push(map_CHI_CAN(van_xuong.0).0,"Văn Xương");
-        viewer.push(map_CHI_CAN(thuy_kich.0).0,"Thủy Kích");
-        viewer.push(map_CHI_CAN(dai_du.1.0).0,"Đại Du");
-        viewer.push(map_CHI_CAN(tieu_du.0).0,"Tiểu Du");
-        for ((name, dt) in dai_tuong.vals()) {
-            viewer.push(map_CHI_CAN(dt.0).0, name);
-        };
-        for ((mon, cung) in bat_mon.vals()) {
-            viewer.push(map_CHI_CAN(cung.0).0, mon);
-        };
-        info.add(viewer.output());
-        
-        Text.join("\n----------------------------\n", info.vals())
-    };
-
-    public func from_to(year_from : Int, year_to : Int) : async (Text) {
-        let buf = Buffer.Buffer<Text>(0);
-        var i = year_from;
-        while (i <= year_to) {
-            buf.add(_print(i));
-            i += 1;
-        };
-        Text.join("\n*********************************************************************************\n", buf.vals())
-    };
 
     public class ThaiAt(year : Int) {
         // Thái ất du hành qua 8 cung (không vào 5) khởi từ Càn (1) tới Tốn (9) mỗi cung ở lại 3 năm
@@ -277,28 +215,126 @@ module {
         // 72 / 6 = 12 (chi)
         // 360 / 72 = 5 (5 tí) | 360 / 60 = 6
 
-        // public func get() : Text {
-        //     let thaiAt = {
-        //         tich_nien = tich_nien();
-        //         tue_ke = tue_ke();
-        //         thai_at = tim_thai_at();
-        //         ky_nguyen_giap_ty = tim_ky_nguyen_giap_ty();
-        //     };
-        //     return (debug_show(thaiAt))
-        // };
+        type TA_TYPE = {
+            #NIEN_KE;
+            #NGUYET_KE;
+            #NHAT_KE;
+            #THOI_KE;
+        };
+        var ke_type : TA_TYPE = #NIEN_KE;
+        var is_duong_cuc = true;
+
+        var month : Int = 1;
+        var day : Int = 1;
+        var hour : Int = 1;
+        var minute : Int = 1;
+
+        public func getYear() : Text {
+            if (year > 0) return Int.toText(year);
+            return (Int.toText(year * (-1)) # " TCN");
+        };
+
+        public func set_month(m : Int) {
+            month := m;
+            ke_type := #NGUYET_KE;
+        };
+
+        public func set_day(d : Int) {
+            day := d;
+            ke_type := #NHAT_KE;
+        };
+
+        public func set_hour(h : Int, m : Int) {
+            hour := h;
+            minute := m;
+            ke_type := #THOI_KE;
+        };
+
+        let _2GZ = func (x : Types.GZTimeIndex) : Text {
+            Types.THIEN_CAN[x.can] # " " # Types.DIA_CHI[x.chi];
+        };
+
+        public func getAmLich() : Text {
+            let (nn, tt, nnnn, thangNhuan) = AmLich.ngayThangNam(day, month, year, true, 7);
+            return Int.toText(nn) # "/" # Int.toText(tt) # "/" # Int.toText(nnnn) # " (" # Int.toText(thangNhuan) # ")";
+        };
+
+        public func getGZAmLich() : Text {
+            let t : Types.DateTime = {
+                year : Nat = Int.abs(year);
+                month : Nat = Int.abs(month);
+                day : Nat = Int.abs(day);
+                hour : Nat = Int.abs(hour);
+                minute : Nat = Int.abs(minute);
+            };
+            let gz = SOLAR24.calculate_ganzhi_datetime(t);
+            let tgz = ("Giờ: " # _2GZ(gz.gio) # " |  Ngày: " # _2GZ(gz.ngay) # " |  Tháng: " # _2GZ(gz.thang) # " |  Năm: " # _2GZ(gz.nam));
+            let (gzNam, gzThang, gzNgay, gzGio) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
+            return ("Giờ: " # _2GZ(gzGio) # " |  Ngày: " # _2GZ(gzNgay) # " |  Tháng: " # _2GZ(gzThang) # " |  Năm: " # _2GZ(gzNam)) # "\n" # tgz;
+        };
+
+        public func getDuongLich() : Text {
+            return Int.toText(hour) # ":" # Int.toText(minute) # " " #Int.toText(day) # "/" # Int.toText(month) # "/" # Int.toText(year);
+        };
+
+        public func getSolarTerm() : Text {
+            let solarTerm = SOLAR24.getSolarTerm(year, month, day, hour, minute);
+            return (debug_show(solarTerm))
+        };
 
         public func tich_nien() : Nat {
-            // T(1683) = (3600 * 2821)
-            //
-            //Để tính từ Giáp Tý thượng cổ đến năm hiện tại : 
-            // T(Y) = T(1683) + (Y - 1683)
+            switch (ke_type) {
+                case (#NGUYET_KE) {
+                    /***
+                    *   Tìm Thái Ất - Nguyệt kế
+                    *   Do Thái ất du hành 3 tháng/cung
+                    *
+                    *   Nguyệt Kế cắt từ năm đầu Niên hiệu Nguyên Gia (元嘉) là của Tống Văn Đế (Lưu Nghĩa Long, 劉義隆) 
+                    *   thời Nam triều Lưu Tống. 
+                    *   Năm 424 là năm đầu niên hiệu Nguyên Gia nhà Tống.
+                    *   Ngày 1 tháng 11 (âm lịch) năm 424 tính là Giáp Tý
+                    *
+                    *   Lấy năm hiện tại trừ đi 424, sau đó nhân với 12 tháng trừ đi 1
+                    *   cộng với tháng hiện tại
+                    *   Chia 3600 để tính nguyên (60 tháng 1 nguyên) nhỏ hơn 1000 thì chia tiếp 360
+                    ***/
+                    let (nn, tt, nnnn, thangNhuan) = AmLich.ngayThangNam(day, month, year, true, 7);
 
-            //  Xem ngược về những năm đã qua -> Giảm 1 số
-            //  Xem xuôi về những năm sắp tới -> Tăng 1 số
+                    let t = (year - 424) * 12 - 1 + tt;
+                    // cộng 3 cho tới tháng giêng (dần) vì tính từ tháng giáp ất là bắt đầu vào 1/11/424
+                    if (year < 0) return Int.abs(t + 1) + 3;
+                    return Int.abs(t) + 3;
+                };
+                case (#THOI_KE) {
+                    /*
+                    *   Tìm ngày Giáp Tý - Khởi Nguyên đếm lấy số đến ngày can chi hiện tại
+                    *   Lấy số trừ đi 1 nhân với 12, rồi cộng 2 (Tý, Sửu)
+                    */
+                    let (solar_index, _) = SOLAR24.getSolarTerm(year, month, day, hour, minute);
+                    if (solar_index > 12) is_duong_cuc := false;
 
-            let t = tich_nien_GIAP_TI_THUONG_CO_to_1683 + (year - NAM_NGUYEN_2821);
-            if (year < 0) return Int.abs(t + 1);
-            return Int.abs(t);
+                    let (gzNam, gzThang, gzNgay, gzGio) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
+                    var so = 0;
+                    _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex) {
+                        if (gzNgay.can == gz.can and gzNgay.chi == gz.chi) {
+                            so := id;
+                        };
+                    });
+                    (so - 1) * 12 + 2;
+                };
+                case (_) { // #NIEN_KE is default mode
+                    // T(1683) = (3600 * 2821)
+                    //
+                    //Để tính từ Giáp Tý thượng cổ đến năm hiện tại : 
+                    // T(Y) = T(1683) + (Y - 1683)
+
+                    //  Xem ngược về những năm đã qua -> Giảm 1 số
+                    //  Xem xuôi về những năm sắp tới -> Tăng 1 số
+                    let t = tich_nien_GIAP_TI_THUONG_CO_to_1683 + (year - NAM_NGUYEN_2821);
+                    if (year < 0) return Int.abs(t + 1);
+                    return Int.abs(t);
+                };
+            };
         };
 
         public func tue_ke() : Nat {
@@ -310,7 +346,7 @@ module {
             return t;
         };
 
-        public func tim_thai_at() : {cung : (Text, Nat); stayed_year : Nat} {
+        public func tim_thai_at() : {cung : (Text, Nat); stayed_year : Nat; so : Nat} {
             /***
             * Tìm Thái Ất
             *   Do Thái ất du hành qua 8 cung (không vào 5) 
@@ -319,25 +355,64 @@ module {
             var tk = tue_ke() % 24;
             if (tk == 0) tk := 24; // tròn 24 năm
 
-            var cung_index = 0; // Khởi Càn
+            // Nếu là Thời Kế & tiết khí sau hạ chí là âm cục, khởi từ Tốn đi ngược
+            // BAT_QUAI[8] = Tốn ; BAT_QUAI[0] = Càn
+            let start_cung_index = if (ke_type == #THOI_KE and (not is_duong_cuc)) (8) else (0); 
+            let direction = if (ke_type == #THOI_KE and (not is_duong_cuc)) (-1) else (1); 
+
+            var cung_index = start_cung_index; // Khởi Càn
             var nam = tk;
             while (nam > 3) {
-                cung_index := move(8, cung_index, 1);
+                cung_index := move(8, cung_index, direction);
                 if (cung_index != 4) nam -= 3; // không phải trung cung
             };
             let stayed = if (nam % 3 == 0) (3) else (nam % 3);
             return {
                 cung = BAT_QUAI[cung_index];
                 stayed_year = stayed;
+                so = tk;
             };
         };
 
-        public func thai_at_nguyet_ke() : () {
+        public func thai_at_nguyet_ke(thang : Int) : (Int, Text) {
             /***
             *   Tìm Thái Ất - Nguyệt kế
             *   Do Thái ất du hành 3 tháng/cung
-            *   
+            *
+            *   Nguyệt Kế cắt từ năm đầu Niên hiệu Nguyên Gia (元嘉) là của Tống Văn Đế (Lưu Nghĩa Long, 劉義隆) 
+            *   thời Nam triều Lưu Tống. 
+            *   Năm 424 là năm đầu niên hiệu Nguyên Gia nhà Tống.
+            *   Ngày 1 tháng 11 (âm lịch) năm 424 tính là Giáp Tý
+            *
+            *   Lấy năm hiện tại trừ đi 424, sau đó nhân với 12 tháng trừ đi 1
+            *   cộng với tháng hiện tại
+            *   Chia 3600 để tính nguyên (60 tháng 1 nguyên) nhỏ hơn 1000 thì chia tiếp 360
             ***/
+
+            // tuế kế
+            var tMonth = (year - 424) * 12;
+            tMonth := tMonth % 3600;
+            if (tMonth > 360) tMonth := tMonth % 360;
+            // tính nguyên 
+            var nguyen = 0; // thượng nguyên
+            var m = tMonth + (thang - 1);
+            while (tMonth > 60) {
+                nguyen := move(2, nguyen, 1);
+                tMonth -= 60;
+            };
+            var can_chi_thang_current = "";
+            tMonth += (thang - 1) + 3;    // cộng 3 vì tính từ tháng 11 âm đến tháng dần là tháng giêng theo lịch dương (input-> thang:Int)
+            _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex){
+                if (id == tMonth)  can_chi_thang_current := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
+            });
+
+            // tính cục
+            m += 3;
+            while (m > 72) {
+                m -= 72;
+            };
+
+            (tMonth, can_chi_thang_current);
         };
 
         private func _dai_du_thai_at(n : Nat, cung_dai_du : (Text, Nat)) : Text {
@@ -419,9 +494,9 @@ module {
                                         "Trung nguyên";
                                     };
             var current_year = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (index : Nat, can : Text, chi : Text) : () {
-                if (index == (tueKe % 60)) {
-                    current_year := can # " " # chi;
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : () {
+                if (id == (tueKe % 60)) {
+                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0
                 };
             });
             return (ky_nguyen_name, tueKe % 60, current_year)
@@ -461,29 +536,29 @@ module {
         public func phuong_vi_phuc_tinh() : (Text) {
             let tueKe = tue_ke();
             var phuc_tinh = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (index : Nat, can : Text, chi : Text) : () {
-                if (index == (tueKe % 60)) {
-                    phuc_tinh := (if (can == "Giáp") {
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : () {
+                if (id == (tueKe % 60)) {
+                    phuc_tinh := (if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[0]) {
                         CHI.DAN
-                    } else if (can == "Ất") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[1]) {
                         CHI.SUU
-                    } else if (can == "Bính") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[2]) {
                         // Bính ở Tý
                         CHI.TY
-                    } else if (can == "Đinh") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[3]) {
                         CHI.HOI
-                    } else if (can == "Mậu") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[4]) {
                         CHI.THAN
-                    } else if (can == "Kỷ") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[5]) {
                         CHI.MUI
-                    } else if (can == "Canh") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[6]) {
                         CHI.NGO
-                    } else if (can == "Tân") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[7]) {
                         //  Tân ở Tị
                         CHI.TI
-                    } else if (can == "Nhâm") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[8]) {
                         CHI.THIN
-                    } else if (can == "Quý") {
+                    } else if (THIEN_CAN[gz.can].0 == Types.THIEN_CAN[9]) {
                         CHI.MAO
                     } else (""));
                 };
@@ -505,30 +580,21 @@ module {
             let chi_index = 0; // tý
             let nguyen = THIEN_CAN[can_index].0 # " " # DIA_CHI[chi_index].0;
             var current_year = "";
-            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (index : Nat, can : Text, chi : Text) : () {
-                if (index == (tueKe % 72)) {
+            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (id : Nat, gz : Types.GZTimeIndex): () {
+                if (id == (tueKe % 72)) {
                     // found
-                    current_year := can # " " # chi;
+                    current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0
                 };
             });
             let cuc = if (tueKe % 72 == 0) (72) else (tueKe % 72); 
             return (cuc, nguyen, current_year);
         };
-
-        type CACH_TINH = {
-            #nien_ke;
-            #nguyet_ke;
-            #nhat_ke;
-            #thoi_ke;
-        };
-        let tiet_khi = "Đông Chí"; //"Hạ Chí";
-        let is_thoi_ke = false; 
         
         public func tim_ke_than() : (Int, (Text, Nat)) {
             let nMove : Int = tich_nien() % 12;
             // Khởi từ Dần là Giáp Tý đếm ngược n cung dừng ở đâu Kế Thần ở đó
             // Duy chỉ có Thời kế - từ Hạ chí dùng cục âm : Khởi từ Thân là Giáp Tý đếm ngược lại.
-            let start_cung_index = if (is_thoi_ke and tiet_khi == "Hạ Chí") (8) else (2); // Dần
+            let start_cung_index = if (ke_type == #THOI_KE and (not is_duong_cuc)) (8) else (2); // Dần
             let direction = -1;
             // Tính từ cung hiện tại là 1 nên nMove giảm 1
             let step = (nMove - 1) * direction;
@@ -536,7 +602,7 @@ module {
             return (nMove, DIA_CHI[cung_ke_than_index]);
         };
 
-        public func tim_thien_muc_van_xuong() : (Text, Nat) { 
+        public func tim_thien_muc_van_xuong() : (Nat, (Text, Nat)) { 
             /*
                 Tìm Thiên Mục (Văn Xương / Chủ mục)
 
@@ -550,7 +616,7 @@ module {
             var tm = tich_nien() % 18;
             if (tm == 0) tm := 18; // tròn 18
 
-            let start = if (is_thoi_ke and tiet_khi == "Hạ Chí") (6) else (14); // DIA_BAN 6 = dần; DIA_BAN 14 = thân 
+            let start = if (ke_type == #THOI_KE and (not is_duong_cuc)) (DIA_BAN[6 - 1].1) else (DIA_BAN[14 - 1].1); // DIA_BAN 6 = dần; DIA_BAN 14 = thân 
             var count = 1;
             var dia_ban_index = start - 1;
             while (count < tm) {
@@ -562,13 +628,13 @@ module {
                     };
                 } else if (start == DIA_BAN[6 - 1].1) {
                     // Khởi Dần gặp Cấn(5) - Tốn(9) thì +2
-                    if (dia_ban_index == 4 or dia_ban_index == 9) {
+                    if (dia_ban_index == 4 or dia_ban_index == 8) {
                         count := count + 1;
                     };
                 };
                 count := count + 1;
             };
-            return DIA_BAN[dia_ban_index];
+            return (tm, DIA_BAN[dia_ban_index]);
         };
 
         public func tim_khach_muc_thuy_kich() : ([(Text, Text)], (Text, Nat)) {
@@ -592,7 +658,7 @@ module {
                 case null Debug.trap("Cannot find vị trí Kế Thần");
                 case (?v) v;
             };
-            let vanXuong = tim_thien_muc_van_xuong();
+            let (_, vanXuong) = tim_thien_muc_van_xuong();
             var can_hoa_duc_index = ke_than_index;
             var thuy_kich_index = 4;
             let buf = Buffer.Buffer<(Text, Text)>(0);
@@ -624,7 +690,7 @@ module {
                 ((CHI.TUAT, CHI.TUAT), 0),
             ];
 
-            let vanXuong = tim_thien_muc_van_xuong();
+            let (_, vanXuong) = tim_thien_muc_van_xuong();
             let (_, thuyKich) = tim_khach_muc_thuy_kich();
             let thaiAt = tim_thai_at();
 
@@ -779,7 +845,7 @@ module {
 
         public func tim_chu_khach_1() : (Nat, Nat) {
 
-            let vanXuong = tim_thien_muc_van_xuong();
+            let (_, vanXuong) = tim_thien_muc_van_xuong();
             let (_, thuyKich) = tim_khach_muc_thuy_kich();
             let thaiAt = (tim_thai_at()).cung;
             let cungThaiAt = Option.get(Array.indexOf(thaiAt, CLOCK_BAT_QUAI, func (x : (Text, Nat), y : (Text, Nat)) : Bool = (x.0 == y.0 and x.1 == y.1)), thaiAt.1 - 1);
@@ -841,13 +907,50 @@ module {
         };
     };
 
-    public class BatQuaiViewer() {
+    public class BatQuaiViewer(t : ThaiAt) {
         let map = HashMap.HashMap<Text, [Text]>(0, Text.equal, Text.hash);
+        var maxRow = 1;
+
+        private func _calc_thai_at() {
+            let thai_at = t.tim_thai_at();
+            let thai_at_cung = thai_at.cung;
+            let (_, ke_than) = t.tim_ke_than();
+            let (cuc, nguyen, can_chi_nam) = t.tinh_cuc();
+            let (ky_nguyen, nguyen_index, can_chi_nam_1) = t.tim_ky_nguyen_giap_ty();
+            let (_, van_xuong) = t.tim_thien_muc_van_xuong();
+            let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
+            let (_, chu_khach) = t.tim_chu_khach();
+            let (truc_su, bat_mon) = t.bat_mon();
+            let dai_tuong = t.tim_dai_tuong();
+            let dai_du = t.dai_du_thai_at();
+            let tieu_du = t.tieu_du_thai_at();
+            
+            push(TRUNG.0, "Năm: " # debug_show(can_chi_nam));
+            push(TRUNG.0, t.getYear());
+            push(TRUNG.0, "Chủ: " # debug_show(chu_khach.0));
+            push(TRUNG.0, "Khách: " # debug_show(chu_khach.1));
+            push(TRUNG.0, "");
+            push(TRUNG.0, "Cục: " # debug_show(cuc) # " | " # nguyen);
+            push(TRUNG.0, "Nguyên: " # debug_show(ky_nguyen));
+            push(map_CHI_CAN(thai_at_cung.0).0,"Thái Ất");
+            push(map_CHI_CAN(ke_than.0).0,"Kế Thần");
+            push(map_CHI_CAN(van_xuong.0).0,"Văn Xương");
+            push(map_CHI_CAN(thuy_kich.0).0,"Thủy Kích");
+            push(map_CHI_CAN(dai_du.1.0).0,"Đại Du");
+            push(map_CHI_CAN(tieu_du.0).0,"Tiểu Du");
+            for ((name, dt) in dai_tuong.vals()) {
+                push(map_CHI_CAN(dt.0).0, name);
+            };
+            for ((mon, cung) in bat_mon.vals()) {
+                push(map_CHI_CAN(cung.0).0, mon);
+            };
+        };
 
         public func push(key : Text, value : Text) {
             switch(map.get(key)) {
                 case (?data) {
                     let val = Array.flatten([data, [value]]);
+                    if (val.size() - 1 > maxRow) maxRow := val.size() - 1;
                     map.put(key, val);
                 };
                 case (null) map.put(key, [value]);
@@ -864,9 +967,12 @@ module {
             switch(map.get(key)) {
                 case (?data) {
                     let val = Array.flatten([data, [value]]);
+                    if (val.size() - 1 > maxRow) maxRow := val.size() - 1;
                     map.put(key, val);
                 };
-                case (null) map.put(key, [value]);
+                case (null) {
+                    map.put(key, [value]);
+                };
             };
         };
 
@@ -876,62 +982,71 @@ module {
             };
         };
 
+        private func _customPrintRow(rowIndex : Nat, palaceName : Text, palaceId : Nat, dataRows : [Text]) : Text {
+            if (rowIndex >= dataRows.size()) return ("");
+            if (palaceId == 1 or palaceName == "Kỷ" or rowIndex == 42 or dataRows[rowIndex] == "24") ();
+            return dataRows[rowIndex];
+        };
+
         public func output() : Text {
-            let buf = Buffer.Buffer<(Text, Nat, [Text])>(0); 
+            _calc_thai_at();
+            let buf = Buffer.Buffer<(Nat, (Text, [Text]))>(0); 
             for (q in BAT_QUAI.vals()) {
-                buf.add((q.0, q.1, Option.get(map.get(q.0), [])));
+                buf.add(q.1, (q.0, Option.get(map.get(q.0), [])));
             };
-            let trando = ThaiAtTranDo(Buffer.toArray(buf));
+            let layout : [[Nat]] = [
+                [9, 2, 7],
+                [4, 5, 6],
+                [3, 8, 1]
+            ];
+            if (maxRow < 9) maxRow := 9;
+            let trando = BatQuaiDrawer<(Text, [Text])>(Buffer.toArray(buf), 
+                                                        ?layout, 
+                                                        maxRow, 
+                                                        func (x : (Nat, Nat, (Text, [Text]))) : Text {
+                                                            // custom print data each row
+                                                            _customPrintRow(x.0, x.2.0, x.1, x.2.1);
+                                                        });
             return trando.lapTran();
         };
 
         _init();
     };
 
-    public class ThaiAtTranDo(palaces: [(Text, Nat, [Text])]) {
-        // [THIEN CAN, ID ,[DATA PRINT]]
+    public class BatQuaiDrawer<V>(palaces: [(Nat, V)], _layout : ?[[Nat]], numRow : Nat, _v2Text :  (Nat, Nat, V) -> Text) {
+        // [ID, THIEN_CAN ,[row DATA]]
         let CELL_WIDTH = 30;
         // Hàm tìm Palace theo number
-        func findPalace(num : Nat) : (Text, Nat, [Text]) {
-            switch (Array.find<(Text, Nat, [Text])>(palaces, func (p) { p.1 == num })) {
+        func findPalace(num : Nat) : (Nat, V) {
+            switch (Array.find<(Nat, V)>(palaces, func (p) { p.0 == num })) {
                 case (?p) p;
                 case null { Debug.trap("Invalid data") }; // Không bao giờ xảy ra với dữ liệu đã cho
             }
         };
-        
-        // Định nghĩa các trường cần hiển thị theo thứ tự
-        let fields : [(Text, (Text) -> Text)] = [
-            ("", func (p: Text) : Text { p }),
-            ("", func (p: Text) : Text { p }),
-            ("", func (p: Text) : Text { p }),
-            ("", func (p: Text) : Text { p }),
-            ("", func (p: Text) : Text { p })
-            // Thêm trường mới ở đây
-        ];
 
         // Định nghĩa layout bát quái đồ
-        let layout : [[Nat]] = [
+        let _defaultLayout : [[Nat]] = [
             [9, 2, 7],
             [4, 5, 6],
             [3, 8, 1]
         ];
 
         func createHorizontalLine() : Text {
-            "+" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "+\n"
+            Text.join("" ,Array.tabulate<Text>(CELL_WIDTH * 3, func _ = "+").vals()) # "+\n"
         };
 
         func formatCell(content: Text) : Text {
             let padding = (CELL_WIDTH - Text.size(content)) / 2;
             let leftPad = Text.join("" ,Array.tabulate<Text>(padding, func _ = ".").vals());
-            let rightPad = Text.join("" ,Array.tabulate<Text>(CELL_WIDTH - padding - Text.size(content), func _ = ".").vals());
+            let rightPad = Text.join("" ,Array.tabulate<Text>(CELL_WIDTH - padding - Text.size(content) - 1, func _ = ".").vals());
             leftPad # content # rightPad
         };
 
         func createRow(rowIds : [Nat], fieldIndex: Nat) : Text {
             var row = "|";
             for (num in rowIds.vals()) {
-                let p = findPalace(num);
-                let content = if (fieldIndex < p.2.size()) p.2[fieldIndex] else "";
+                let (pId, p) = findPalace(num);
+                let content = _v2Text(fieldIndex, pId, p);
                 row := row # formatCell(content) # "|";
             };
             row # "\n"
@@ -939,23 +1054,96 @@ module {
 
         public func lapTran() : Text {
             var output = createHorizontalLine();
-            var maxRow = 0;
-            for (item in palaces.vals()) {
-                if (item.2.size() > maxRow) {
-                    maxRow := item.2.size() - 1;
-                };
+
+            let layout = switch(_layout) {
+                case (?l) l;
+                case (null) _defaultLayout;
             };
             
             for (row in layout.vals()) {
-                for (fieldIndex in Iter.range(0, maxRow)) {
+                for (fieldIndex in Iter.range(0, numRow)) {
                     output := output # createRow(row, fieldIndex);
                 };
-                output := output # "|" # Text.join("" ,Array.tabulate<Text>((CELL_WIDTH + 1) * 3, func _ = ".").vals()) # "|\n";
+                output := output # "|" # Text.join("" ,Array.tabulate<Text>(CELL_WIDTH * 3 - 1, func _ = "*").vals()) # "|\n";
             };
             
-            output := output # createHorizontalLine();
+            // output := output # createHorizontalLine();
             output
         };
 
+    };
+
+    public func thai_at(year : Int, month : ?Int, day : ?Int, hour : ?Int, minute :?Int) : async (Text) {
+        let t = ThaiAt(year);
+        switch (month) {
+            case (?m) t.set_month(m);
+            case (_) ();
+        };
+        switch (day) {
+            case (?d) t.set_day(d);
+            case (_) ();
+        };
+        switch (hour) {
+            case (?h) {
+                switch (minute) {
+                    case (?m) t.set_hour(h, m);
+                    case (_) ();
+                };
+            };
+            case (_) ();
+        };
+        return _print(t);
+    };
+    
+    private func _print(t : ThaiAt) : (Text) {
+        let info = Buffer.Buffer<Text>(0);
+        let thai_at = t.tim_thai_at();
+        let thai_at_cung = thai_at.cung;
+        let (_, ke_than) = t.tim_ke_than();
+        let (cuc, _, _) = t.tinh_cuc();
+        let (vx18, van_xuong) = t.tim_thien_muc_van_xuong();
+        let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
+        let (_, chu_khach) = t.tim_chu_khach();
+        let (truc_su, bat_mon) = t.bat_mon();
+        let dai_tuong = t.tim_dai_tuong();
+        let dai_du = t.dai_du_thai_at();
+        let tieu_du = t.tieu_du_thai_at();
+        info.add("Số năm từ Thượng cổ Giáp Tý đến " # t.getYear() # ": " # debug_show(t.tich_nien()));
+        info.add("Dương Lịch: " # t.getDuongLich());
+        info.add("Âm Lịch: " # t.getAmLich());
+        info.add("Âm Lịch GanZhi: " # t.getGZAmLich());
+        info.add("Tiết khí: " # t.getSolarTerm());
+        info.add("Vị trí Thái Ất: " # debug_show(thai_at) # " -> Môn: " # (find_bat_mon(bat_mon, thai_at.cung)));
+        info.add("Kỷ nguyên Giáp Tý: " # debug_show(t.tim_ky_nguyen_giap_ty()));
+        info.add("Cục : " # debug_show(cuc));
+        info.add("Vị trí Kế Thần: " # debug_show(t.tim_ke_than()) # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(ke_than.0))));
+        info.add("Vị trí Thiên Mục/Văn Xương: " # debug_show(t.tim_thien_muc_van_xuong())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(van_xuong.0))));
+        info.add("Vị trí Khách Mục Thủy Kích: " # debug_show(t.tim_khach_muc_thuy_kich())  # " -> Môn: " # (find_bat_mon(bat_mon, map_CHI_CAN(thuy_kich.0))));
+        info.add("Bát Môn: " # debug_show(bat_mon));
+        info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
+        info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
+        for (dt in dai_tuong.vals()) {
+            info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
+        };
+        info.add("Đại du Thái Ất: " # debug_show(dai_du));
+        info.add("Tiểu du Thái Ất: " # debug_show(tieu_du));
+        info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
+
+        
+        let viewer = BatQuaiViewer(t);
+        info.add(viewer.output());
+        
+        Text.join("\n----------------------------\n", info.vals())
+    };
+
+    public func from_to(year_from : Int, year_to : Int) : async (Text) {
+        let buf = Buffer.Buffer<Text>(0);
+        var i = year_from;
+        while (i <= year_to) {
+            let t = ThaiAt(i);
+            buf.add(_print(t));
+            i += 1;
+        };
+        Text.join("\n*********************************************************************************\n", buf.vals())
     };
 };
