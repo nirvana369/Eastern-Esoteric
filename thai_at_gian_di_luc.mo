@@ -1,4 +1,30 @@
 
+/*******************************************************************
+* Copyright         : 2025 nirvana369
+* File Name         : thai_at_gian_di_luc.mo
+* Description       : Thái Ất thần số - Tam thức học
+*                     - Bậc vua có đất nước thì xem tuế kế (năm)
+*                     - Nguyệt kế (tháng) thì xem cho bậc công khanh
+*                     - Nhật kế (ngày) thì cho các quan và dân chúng
+*                     - Vận trù chiến sự thì bậc tướng soái xem Thời kế (giờ) 
+*                    
+* Revision History  :
+* Date				Author    		Comments
+* ---------------------------------------------------------------------------
+* 26/08/2025		nirvana369 		implement
+* 26/08/2025        nirvana369      + Tìm Thái Ất, Tuế Kế (360), Tìm kỷ nguyên Giáp Tý (60), tính Cục (72),
+*                                   + tìm Kế Thần (12), tìm Thiên Mục/Văn Xương (Chủ Mục),
+*                                   + tìm Thủy Kích (Khách Mục), tìm Chủ/Khách, tìm Chủ/Khách Đại/Tham Tướng.
+* 27/08/2025        nirvana369      need implement 72 cục dương độn - Thái ất giản dị lục (page 99 - 111) 
+* 27/08/2025        nirvana369      implement tim_chu_khach_1()
+* 30/08/2025        nirvana369      + Phép Đại Du Thái Ất & Tiểu Du Thái Ất:
+*                                   + implement : dai_du_thai_at(), tieu_du_thai_at(), phuong_vi_phuc_tinh()
+* 30/08/2025        nirvana369      Tính Bát Môn -> implement bat_mon()                  
+* 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()           
+* 01/09/2025        nirvana369      + Implement Nguyệt kế & Thời kế
+*                                   + Trạng thái Vượng, Tướng, Thai, Một, Tù, Tử, Hưu, Phế
+******************************************************************/
+
 import Int "mo:base/Int";
 import Text "mo:base/Text";
 import Buffer "mo:base/Buffer";
@@ -350,41 +376,6 @@ module {
 
             (tMonth, can_chi_thang_current);
         };
-
-        // private func _dai_du_thai_at(n : Nat, cung_dai_du : (Text, Nat)) : Text {
-        //     let result = Nat.toText(n) # (if (n == 1 or n == 11 or n == 21) {
-        //                         " -> Bất lợi cho vua";
-        //                     } else if (n == 2 or n == 12 or n == 22 or n == 32) {
-        //                         " -> bất lợi cho vương hầu, các bề tôi tướng tể";
-        //                     } else if (n == 3 or n == 13 or n == 23 or n == 33) {
-        //                         " -> bất lợi cho hậu phi";
-        //                     } else if (n == 4 or n == 14 or n == 34) {
-        //                         " -> bất lợi cho thái tử";
-        //                     } else if (n == 5 or n == 15 or n == 25) {
-        //                         " -> bất lợi cho dân";
-        //                     } else if (n == 6 or n == 16 or n == 26 or n == 36) {
-        //                         " -> bất lợi cho tướng soái";
-        //                     } else if (n == 7 or n == 17 or n == 27 or n == 37) {
-        //                         " -> Bất lợi cho thượng tướng";
-        //                     } else if (n == 8 or n == 18 or n == 28 or n == 38) {
-        //                         " -> Bất lợi cho trung tướng";
-        //                     } else if (n == 9 or n == 19 or n == 29 or n == 39) {
-        //                         " -> Bất lợi cho hạ tướng";
-        //                     } else if (n == 10 or n == 20 or n == 30) {
-        //                         " -> Bất lợi cho quân lính";
-        //                     } else {
-        //                         let ngu_phuc = "Đại Du gặp Ngũ Phúc thì tai họa binh đao giáng vào địa phận đối xung";
-        //                         let thai_at = "Đại Du cùng Thái Ất thì địa phận năm đó có binh đao lớn, trời biến động nhiều sự quái dị";
-        //                         let dia_at = "Đại Du cùng Địa Ất thì giặc dã, trộm cướp, sâu bệnh";
-        //                         let truc_phu = "Đại Du cùng Trực Phù thì đao binh, hỏa hoạn, hạn hán";
-        //                         let tu_than = "Đại Du cùng Tứ Thần thì hạn lụt, đối rét";
-        //                         let tieu_du = "Đại Du cũng Tiểu Du thì binh đao, lụt, hạn, tai họa lớn lao";
-        //                         let td = tieu_du_thai_at();
-        //                         if (td.0 == cung_dai_du.0 and td.1 == cung_dai_du.1) return tieu_du;
-        //                         ("");
-        //                     });
-        //     return result;
-        // };
 
         public func dai_du_thai_at() : ((Nat, Nat), (Text, Nat)) {
             // Tính Đại Du Thái Ất - ở 1 cung 36 năm (12 năm lý thiên, 12 năm lý địa, 12 năm lý nhân)
