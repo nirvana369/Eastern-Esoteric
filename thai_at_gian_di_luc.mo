@@ -1167,6 +1167,57 @@ module {
         public func infoThuyKich() : Text {
             ("")
         };
+        // Đơn = 1; Cô = 2; Dương = 1; Âm = 2;
+        let DON_DUONG = ("Đơn Dương", (1, 1));
+        let DON_AM = ("Đơn Âm", (1, 2));
+        let CO_DUONG = ("Cô Dương", (2, 1));
+        let CO_AM = ("Cô Âm", (2, 2));
+
+        func _co_don_am_duong(num : Nat) : (Text, (Nat, Nat)) {
+            let don_duong = [1, 3, 7, 9];
+            let don_am = [2, 4, 6, 8];
+            let co_duong = [10, 30];
+            let co_am = [20, 40];
+            for (n in don_duong.vals()) if (num == n) return DON_DUONG;
+            for (n in don_am.vals()) if (num == n) return DON_AM;
+            for (n in co_duong.vals()) if (num == n) return CO_DUONG;
+            for (n in co_am.vals()) if (num == n) return CO_AM;
+            ("", (0, 0));
+        };
+
+        func _chu_khach_numberlogy_state(num : Nat) : (Text) {
+            if (num == 10) return "Tướng Quân";
+            if (num == 5) return "Sĩ";
+            if (num == 1) return "Quân Lính";
+            if (num < 10) return "Dữ (Không đủ)";
+            if (num >= 16) return "Trường Hòa, Tướng, Lại, sĩ binh đều đầy đủ; Nên làm trăm việc";
+            if (num < 16) return "Không Trường";
+            ("")
+        };
+
+        public func infoCoDonAmDuong() : Text {
+            let (_, (chu, khach)) = t.tim_chu_khach();
+            let (_, (chuCD, chuAD)) = _co_don_am_duong(chu);
+            let (_, (khachCD, khachAD)) = _co_don_am_duong(khach);
+            if (chuAD == khachAD) {
+                if (chuAD == 1) {
+                    if (chuCD != khachCD) { 
+                        // trùng dương
+                        return " Tai ách về Hỏa";
+                    } else {
+                        return " Bất lợi cho Chủ";
+                    };
+                } else {
+                    if (chuCD != khachCD) { 
+                        // trùng âm
+                        return " Tai ách về Thủy";
+                    } else {
+                        return " Bất lợi cho Khách";
+                    };
+                };
+            };
+            ("")
+        };
         
         public func infoVanXuong() : Text {
             let vanXuong = t.tim_thien_muc_van_xuong();
