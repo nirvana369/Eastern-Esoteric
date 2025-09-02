@@ -1,3 +1,13 @@
+/*******************************************************************
+* Copyright         : 2025 nirvana369
+* File Name         : solar24.mo
+* Description       : Solar terms
+*                    
+* Revision History  :
+* Date				Author    		Comments
+* ---------------------------------------------------------------------------
+* 01/09/2025		nirvana369 		implement
+******************************************************************/
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Int "mo:base/Int";
@@ -59,7 +69,7 @@ module {
 
         ==========================================
     ***/
-    let WEATHER_TERMS_NAME = ["Đông Chí", "Tiểu Hàn", "Đại Hàn",
+    public let WEATHER_TERMS_NAME = ["Đông Chí", "Tiểu Hàn", "Đại Hàn",
                             "Lập Xuân", "Vũ Thủy", "Kinh Trập",
                             "Xuân Phân", "Thanh Minh", "Cốc Vũ",
                             "Lập Hạ", "Tiểu Mãn", "Mang Chủng",
@@ -67,7 +77,7 @@ module {
                             "Lập Thu", "Xử Thử", "Bạch Lộ",
                             "Thu Phân", "Hàn Lộ", "Sương Giáng",
                             "Lập Đông", "Tiểu Tuyết", "Đại Tuyết"]; 
-    let SOLAR_TERMS : [(Text, Float, [Nat])] = [
+    public let SOLAR_TERMS : [(Text, Float, [Nat])] = [
         // KHẢM
         ("Đông Chí", 270.0, [1, 7, 4]), // Dương Độn
         ("Tiểu Hàn", 285.0, [2, 8, 5]),     
@@ -195,7 +205,7 @@ module {
         };
     };
         
-    private func calculate_julian_day(date : Types.DateTime) : Float {
+    public func calculate_julian_day(date : Types.DateTime) : Float {
         var y = date.year;
         var m = date.month;
         let d = Float.fromInt(date.day) + Float.fromInt(date.hour) / 24.0 + Float.fromInt(date.minute) / 1440.0;
@@ -223,7 +233,7 @@ module {
         return LichHND.SunLongitude(jd);
     };
 
-    private func calculate_solar_longitude(mode : Nat, date : Types.DateTime, time_zone : Float) : Float {
+    public func calculate_solar_longitude(mode : Nat, date : Types.DateTime, time_zone : Float) : Float {
         if (mode != 0) {
             return _sun_longitude(date, time_zone);
         };
@@ -246,7 +256,7 @@ module {
         return if (sun_long < 0.0) { sun_long + 360.0 } else { sun_long };
     };
 
-    private func _find_solar_term_index(mode : Nat, date_time : Types.DateTime, time_zone : Float) : (Nat, (Text, Float, [Int])) {
+    public func _find_solar_term_index(mode : Nat, date_time : Types.DateTime, time_zone : Float) : (Nat, (Text, Float, [Int])) {
         // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
         // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
         let sun_long = calculate_solar_longitude(mode, date_time, time_zone);
@@ -263,7 +273,7 @@ module {
                 current_term_index := i;
             };
         };
-        return (current_term_index + 1, solarTerms[current_term_index]);
+        return (current_term_index, solarTerms[current_term_index]);
     };
 
     public func getSolarTerm(year : Int, month : Int, day : Int, hour : Int, minute : Int) : (Nat, (Text, Float, [Int])) {
@@ -274,7 +284,8 @@ module {
             hour : Nat = Int.abs(hour);
             minute : Nat = Int.abs(minute);
         };
-        _find_solar_term_index(0 , t, 7);
+        let (index, solarTerm) = _find_solar_term_index(0 , t, 7);
+        return (index + 1, solarTerm);
     };
 
     public func solarTerms24() : async [(Text, Float, [Int])] {
