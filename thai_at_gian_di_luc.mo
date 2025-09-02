@@ -912,7 +912,7 @@ module {
                 if (q.1 != 5) {
                     // Chỉ tính trạng thái 8 cung trừ trung cung (5)
                     let (_, (tiet_khi, _, _)) = t.getSolarTerm();
-                    push(q.0, SOLAR24.bat_quai_state(q.0, tiet_khi));
+                    push(q.0, "[" # SOLAR24.bat_quai_state(q.0, tiet_khi)  # "]");
                 };
             };
         };
