@@ -28,6 +28,7 @@ import Hash "mo:base/Hash";
 import LichHND "LichHND";
 import AmLich "AmLich";
 import Types "types";
+import Solar24 "solar24";
 
 module {
     // --- Constants ---
@@ -72,151 +73,14 @@ module {
 
     let _newGZTime = Types._newGZTime;
 
-    // Sorted by degrees for easier lookup
-    // Thượng - Trung - Hạ -> cách nhau 6 số Thượng + 6 % 9 = (Trung + 6) % 9 = (Hạ + 6) % 9 + 1 = Chuyển tiết Thượng
-
-    /***
-        Tiết Khí .
-        Khi tính xem Can Chi ngày thuộc Thượng Trung Hạ Nguyên của Tiết Khí thì chỉ lấy Phù
-        Đầu mà tính, không phải lấy Tuần Thủ. Dĩ nhiên có rất nhiều Tuần Thủ của Can Chi củng
-        chính là Phù Đầu, trường hợp này chính là 5 ngày đầu của một tuần Giáp (tại chưa tới Kỷ,
-        nên Tuần Thủ Giáp củng chính là Phù Đầu). 5 ngày sau của tuần Giáp thì có can Kỷ là Phù
-        Đầu.
-        Ta biết trái đất xoay quanh mặt trời, 1 vòng 360 độ là 1 năm. Đem 360 / 24 = 15 độ.
-        Cho nên mỗi tiết khí là 15 kinh độ mặt trời (Sun Longitude)
-        Tiết khí căn cứ vào kinh độ của mặt trời cho nên các điểm móc này không thay đổi, tức là tiết
-        Lập Xuân thì lúc nào củng là 315 kinh độ mặt trời.
-        Tiết khí âm lịch bắt đầu từ tiết Đông Chí.
-        Dưới đây là bản liệt kê tiết khí, kinh độ mặt trời, và các ngày Dương Lịch mà tiết khí thường
-        bắt đầu.
-        Đông Chí (Winter Solstice), 270 độ, 22 Tháng 12 DL
-        Tiểu Hàn, 285 độ, 6 Tháng 1 DL
-        Đại Hàn, 300 độ, 10 Tháng 1 DL
-        Lập Xuân, 315 độ, 4 Tháng 2 DL
-        Vũ Thũy, 330 độ, 19 Tháng 2 DL
-        Kinh Chập 345 độ, 6 Tháng 3 DL
-        Xuân Phân (Spring Equinox), 0 độ, 21 Tháng 3
-        Thanh Minh, 15 độ, 5 Tháng 4 DL
-        Cốc Vũ, 30 độ, 20 Tháng 4 DL
-        Lập Hạ, 45 độ, 6 Tháng 5 DL
-        Tiểu Mãn, 60 độ, 21 Tháng 5 DL
-        Mang Chủng, 75 độ, 6 Tháng 6 DL
-        Hạ Chí (Summer Solstice), 90 độ, 21 Tháng 6 DL
-        Tiểu Thử, 105 độ, 7 Tháng 7 DL
-        Đại Thử, 120 độ, 23 Tháng 7 DL
-        Lập Thu, 135 độ, 8 Tháng 8 DL
-        Xử Thử, 150 độ, 23 Tháng 8 DL
-        Bạch Lộ, 165 độ, 8 Tháng 9 DL
-        Thu Phân (Autum Equinox), 180 độ, 23 Tháng 9 DL
-        Hàn Lộ, 195 độ, 8 Tháng 10 DL
-        Sương Giáng, 210 độ, 24 Tháng 10 DL
-        Lập Đông, 225 độ, 8 Tháng 11 DL
-        Tiểu Tuyết, 240 độ, 22 Tháng 11 DL
-        Đại Tuyết, 255 độ, 7 Tháng 12 DL
-        Tại sao điểm Xuân Phân lại cho là 0 độ?
-        Điểm Xuân Phân chính là điểm giao nhau của vòng Hoàng Đạo và Xích Đạo.
-        Thật ra 24 Tiết Khí, bao gồm 12 Tiết và 12 Khí (còn gọi là Trung Khí, tức khí giữa hai tiết).
-        Lấy Lập Xuân là mốc của Tiết, ta thấy rằng các kinh độ mặt trời có đuôi 5 đều là Tiết và các
-        kinh độ có đuôi 0 đều là Khí hay Trung Khí.
-
-        ==========================================
-    ***/
-    let SOLAR_TERMS : [(Text, Float, [Nat])] = [
-        // CHẤN
-        ("Xuân Phân", 0.0, [3, 9, 6]),
-        ("Thanh Minh", 15.0, [4, 1, 7]),
-        ("Cốc Vũ", 30.0, [5, 2, 8]),
-        // TỐN
-        ("Lập Hạ", 45.0, [4, 1, 7]),
-        ("Tiểu Mãn", 60.0, [5, 2, 8]),
-        ("Mang Chủng", 75.0, [6, 3, 9]),// Hết Dương độn - idx 5
-        // LY
-        ("Hạ Chí", 90.0, [9, 3, 6]), // Âm Độn - idx 6
-        ("Tiểu Thử", 105.0, [8, 2, 5]),
-        ("Đại Thử", 120.0, [7, 1, 4]),
-        // KHÔN
-        ("Lập Thu", 135.0, [2, 5, 8]),
-        ("Xử Thử", 150.0, [1, 4, 7]),
-        ("Bạch Lộ", 165.0, [9, 3, 6]),
-        // ĐOÀI
-        ("Thu Phân", 180.0, [7, 1, 4]),
-        ("Hàn Lộ", 195.0, [6, 9 ,3]),        
-        ("Sương Giáng", 210.0, [5, 8, 2]),
-        // CÀN
-        ("Lập Đông", 225.0, [6, 9, 3]),   
-        ("Tiểu Tuyết", 240.0, [5, 8, 2]),
-        ("Đại Tuyết", 255.0, [4, 7 , 1]), // Hết Âm độn - idx 17
-        // KHẢM
-        ("Đông Chí", 270.0, [1, 7, 4]), // Dương Độn - idx 18
-        ("Tiểu Hàn", 285.0, [2, 8, 5]),     
-        ("Đại Hàn", 300.0, [3, 9, 6]),
-        // CẤN
-        ("Lập Xuân", 315.0, [8, 5, 2]),
-        ("Vũ Thủy", 330.0, [9, 6, 3]),
-        ("Kinh Trập", 345.0, [1, 7, 4])
-    ];
-    
-    public func _24_tiet_khi() : async Text {
-        // Initialize arrays for h, m, l (indexed 1-24)
-        var thuong_nguyen = Array.init<Nat>(25, 0);
-        var trung_nguyen = Array.init<Nat>(25, 0);
-        var ha_nguyen = Array.init<Nat>(25, 0);
-        
-        // Given initial values
-        thuong_nguyen[1] := 1;
-        thuong_nguyen[4] := 8;
-        thuong_nguyen[7] := 3;
-        thuong_nguyen[10] := 4;
-        
-        // First loop: fill h (i = 1, 4, 7, 10)
-        for (i in Iter.range(1, 10)) {
-            if (i % 3 == 1 and i <= 10) {
-                thuong_nguyen[i + 1] := thuong_nguyen[i] + 1;
-                
-                if (thuong_nguyen[i] + 2 > 9) {
-                    thuong_nguyen[i + 2] := (thuong_nguyen[i] + 2) - 9;
-                } else {
-                    thuong_nguyen[i + 2] := thuong_nguyen[i] + 2;
-                };
-            };
-        };
-        
-        // Second loop: calculate m, l, and extend h, m, l to 24
-        for (i in Iter.range(1, 12)) {
-            // compute m[i]
-            if (thuong_nguyen[i] + 6 > 9) {
-                trung_nguyen[i] := (thuong_nguyen[i] + 6) - 9;
-            } else {
-                trung_nguyen[i] := thuong_nguyen[i] + 6;
-            };
-            
-            // compute l[i]
-            if (trung_nguyen[i] - 3 <= 0) {
-                ha_nguyen[i] := (trung_nguyen[i] - 3) + 9;
-            } else {
-                ha_nguyen[i] := trung_nguyen[i] - 3;
-            };
-            
-            // extend to 24
-            thuong_nguyen[i + 12] := 10 - thuong_nguyen[i];
-            trung_nguyen[i + 12] := 10 - trung_nguyen[i];
-            ha_nguyen[i + 12] := 10 - ha_nguyen[i];
-        };
-        
-        // Build result string
-        var result = "";
-        for (i in Iter.range(1, 24)) {
-            result := result # debug_show(i) # ": h=" # debug_show(thuong_nguyen[i]) # ", m=" # debug_show(trung_nguyen[i]) # ", l=" # debug_show(ha_nguyen[i]) # "\n";
-        };
-        
-        return result;
-    };
+    let SOLAR_TERMS = Solar24.SOLAR_TERMS;
 
     let PALACE_NAMES : [(Nat, Text)] = [
         (1, "Khảm"), (2, "Khôn"), (3, "Chấn"), (4, "Tốn"), 
         (5, "Trung"), (6, "Càn"), (7, "Đoài"), (8, "Cấn"), (9, "Ly")
     ];
 
+    // Hậu thiên bát quái
     let CUNG = {
         CAN_KIM = 5;
         KHAM_THUY = 0;
@@ -442,61 +306,10 @@ module {
         (chi_kv_1, chi_kv_2);
     };
 
-    private func calculate_julian_day(date : DateTime) : Float {
-        var y = date.year;
-        var m = date.month;
-        let d = Float.fromInt(date.day) + Float.fromInt(date.hour) / 24.0 + Float.fromInt(date.minute) / 1440.0;
-        
-        if (m <= 2) {
-            y -= 1;
-            m += 12;
-        };
-        
-        let a = Float.floor(Float.fromInt(y) / 100.0);
-        let b = 2.0 - a + Float.floor(a / 4.0);
-        
-        return Float.floor(365.25 * (Float.fromInt(y) + 4716.0)) 
-                + Float.floor(30.6001 * (Float.fromInt(m) + 1.0)) 
-                + d + b - 1524.5;
-    };
-    
-    private func calculate_solar_longitude(mode : Nat, date : DateTime, time_zone : Float) : Float {
-        if (mode != 0) {
-            return _sun_longitude(date, time_zone);
-        };
-        let jd = calculate_julian_day(date);
-        let T = (jd - 2451545.0) / 36525.0;
-        
-        var L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
-        L0 -= Float.floor(L0 / 360.0) * 360.0;
-        
-        var M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
-        M -= Float.floor(M / 360.0) * 360.0;
-        
-        let M_rad = M * 3.1415926535 / 180.0;
-        
-        let C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Float.sin(M_rad)
-                + (0.019993 - 0.000101 * T) * Float.sin(2.0 * M_rad)
-                + 0.000289 * Float.sin(3.0 * M_rad);
-                
-        let sun_long = L0 + C;
-        return if (sun_long < 0.0) { sun_long + 360.0 } else { sun_long };
-    };
-
     private func _find_solar_term_index(mode : Nat, date_time : DateTime, time_zone : Float) : Nat {
         // Tìm vị trí kinh độ mặt trời và xác định tiết khí trong 24 tiết khí / năm
         // Tìm Kinh độ mặt trời dựa vào ngày/tháng/năm dương lịch
-        let sun_long = calculate_solar_longitude(mode, date_time, time_zone);
-        
-        // Find the solar term immediately before current position
-        var current_term_index = 0;
-        label f for (i in SOLAR_TERMS.keys()) {
-            if (sun_long >= SOLAR_TERMS[i].1) {
-                current_term_index := i;
-            } else {
-                break f;
-            };
-        };
+        let (current_term_index, _) = Solar24._find_solar_term_index(mode, date_time, time_zone);
         return current_term_index;
     };
         
@@ -1037,7 +850,7 @@ module {
         private func calculate_bazi() {
             // Tính Năm / Ngày / Giờ theo âm lịch (Thiên Can - Địa Chi)
             let date_time : DateTime = chart_data.date_time;
-            let jd = calculate_julian_day(date_time);
+            let jd = Solar24.calculate_julian_day(date_time);
 
             // Year Pillar (60-year cycle)
             let year_gan_idx = (date_time.year - 4) % 10;
@@ -1194,9 +1007,9 @@ module {
                 gio = ("Giờ: " # THIEN_CAN[canChiIndex.gio.can] # " " # DIA_CHI[canChiIndex.gio.chi]);
             };
             let sun = {
-                sun_longitude_original = calculate_solar_longitude(0, dt, 7);
+                sun_longitude_original = Solar24.calculate_solar_longitude(0, dt, 7);
                 sun_term_index_original = _find_solar_term_index(0, dt, 7);
-                sun_longitude = calculate_solar_longitude(1, dt, 7);
+                sun_longitude = Solar24.calculate_solar_longitude(1, dt, 7);
                 sun_term_index = _find_solar_term_index(1, dt, 7);
                 sun_longitude_1 = _sun_longitude_1(dt);
             };
