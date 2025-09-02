@@ -276,7 +276,7 @@ module {
                 case (#THOI_KE) {
                     /*
                     *   Tìm ngày Giáp Tý - Khởi Nguyên đếm lấy số đến ngày can chi hiện tại
-                    *   Lấy số trừ đi 1 nhân với 12, rồi cộng 2 (Tý, Sửu)
+                    *   Lấy số trừ đi 1 nhân với 12 là bắt đầu giờ Tý của ngày hiện tại
                     */
                     let (solar_index, _) = SOLAR24.getSolarTerm(year, month, day, hour, minute);
                     if (solar_index > 12) is_duong_cuc := false;
@@ -290,7 +290,7 @@ module {
                         };
                         return false;
                     });
-                    // t = (hour + 1) * 60 / 2
+                    // t = ((hour + 1) * 60  + minute) / 2
                     // ((x - 1) * 12) + (t / 60 + (t % 60 != 0)])
                     var t = Int.abs(((hour + 1) * 60 + minute) / 2); // hour + 1 vì phép tính giờ Dương, phải tính từ Tí là 11h đến 12h ngày hiện tại, do phép lấy số đã trừ đi 1 (bắt đầu từ giờ Tí)
                     t := (if (t % 60 == 0) (t / 60) else (t / 60 + 1));
@@ -1066,12 +1066,12 @@ module {
         let (keType, keName) = t.getKeType();
         switch (keType) {
             case (#THOI_KE) {
-                info.add("t(HH) = (H + 1) * 60 / 2");
-                info.add("T(YYYY/MM/DD HH:mm) = ((x - 1) * 12) + (t(HH) / 60 + (t % 60 != 0)])");
+                info.add("t(H:m) = ((H + 1) * 60 + m) / 2");
+                info.add("T(Y/M/D H:m) = ((x - 1) * 12) + (t(H) / 60 + (t % 60 != 0)])");
                 info.add("Số giờ từ ngày Giáp Tý: "  # debug_show(t.tich_nien()));
             };
             case (#NGUYET_KE) {
-                info.add("T(YYYY/MM) = |(Y - 424) * 12 - 1 + M| + 3");
+                info.add("T(Y/M) = |(Y - 424) * 12 - 1 + M| + 3");
                 info.add("Số tháng từ Ngày 1 tháng 11 (âm lịch) năm 424: "  # debug_show(t.tich_nien()));
             };
             case (_) {
