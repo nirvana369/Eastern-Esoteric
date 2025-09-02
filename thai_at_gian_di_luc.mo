@@ -128,7 +128,10 @@ module {
         return i - 1;
     };
 
-    private func _move_luc_thap_hoa_giap(_can : ?Nat, _chi : ?Nat, _stop : ?Nat, callback : (Nat, Types.GZTimeIndex, () -> ()) -> ()) : () {
+    private func _move_luc_thap_hoa_giap(_can : ?Nat, 
+                                            _chi : ?Nat, 
+                                            _stop : ?Nat, 
+                                            callback : (Nat, Types.GZTimeIndex) -> (Bool)) : () {
         var can = switch (_can) {
             case (?v) v;
             case null 0;
@@ -144,9 +147,9 @@ module {
         var index = 0;
         while (index < stop) {
             index := index + 1;
-            callback(index, Types._newGZTime(can, chi), func () {
-                return ();
-            });
+            if (callback(index, Types._newGZTime(can, chi))) {
+                return;
+            };
             can := if (can == 9) 0 else (can + 1);
             chi := if (chi == 11) 0 else (chi + 1);
         };
@@ -206,8 +209,13 @@ module {
             ke_type := #THOI_KE;
         };
 
-        let _2GZ = func (x : Types.GZTimeIndex) : Text {
-            Types.THIEN_CAN[x.can] # " " # Types.DIA_CHI[x.chi];
+        public func getKeType() : (TA_TYPE, Text) {
+            let t = switch (ke_type) {
+                case (#THOI_KE) "Thời Kế";
+                case (#NGUYET_KE) "Nguyệt Kế";
+                case (_) "Tuế Kế";
+            };
+            return (ke_type, t);
         };
 
         public func getAmLich() : Text {
@@ -216,6 +224,10 @@ module {
         };
 
         public func getGZAmLich() : Text {
+            let _2GZ = func (x : Types.GZTimeIndex) : Text {
+                Types.THIEN_CAN[x.can] # " " # Types.DIA_CHI[x.chi];
+            };
+            //
             let t : Types.DateTime = {
                 year : Nat = Int.abs(year);
                 month : Nat = Int.abs(month);
@@ -255,7 +267,7 @@ module {
                     *   Chia 3600 để tính nguyên (60 tháng 1 nguyên) nhỏ hơn 1000 thì chia tiếp 360
                     ***/
                     let (nn, tt, nnnn, thangNhuan) = AmLich.ngayThangNam(day, month, year, true, 7);
-
+                    // t(Y) = |(Y - 424) * 12 - 1 + M| + 3
                     let t = (year - 424) * 12 - 1 + tt;
                     // cộng 3 cho tới tháng giêng (dần) vì tính từ tháng giáp ất là bắt đầu vào 1/11/424
                     if (year < 0) return Int.abs(t + 1) + 3;
@@ -271,12 +283,15 @@ module {
 
                     let (_, _, gzNgay, _) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
                     var so = 0;
-                    _move_luc_thap_hoa_giap(null, null, ?181, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) {
+                    _move_luc_thap_hoa_giap(null, null, ?181, func (id : Nat, gz : Types.GZTimeIndex) : Bool {
                         if (gzNgay.can == gz.can and gzNgay.chi == gz.chi) {
                             so := id;
-                            terminate();
+                            return true;
                         };
+                        return false;
                     });
+                    // t = (hour + 1) * 60 / 2
+                    // ((x - 1) * 12) + (t / 60 + (t % 60 != 0)])
                     var t = Int.abs(((hour + 1) * 60 + minute) / 2); // hour + 1 vì phép tính giờ Dương, phải tính từ Tí là 11h đến 12h ngày hiện tại, do phép lấy số đã trừ đi 1 (bắt đầu từ giờ Tí)
                     t := (if (t % 60 == 0) (t / 60) else (t / 60 + 1));
                     return (so - 1) * 12 + t;
@@ -361,11 +376,12 @@ module {
             };
             var can_chi_thang_current = "";
             tMonth += (thang - 1) + 3;    // cộng 3 vì tính từ tháng 11 âm đến tháng dần là tháng giêng theo lịch dương (input-> thang:Int)
-            _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()){
+            _move_luc_thap_hoa_giap(null, null, ?60, func (id : Nat, gz : Types.GZTimeIndex) : Bool {
                 if (id == tMonth)  {
                     can_chi_thang_current := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
-                    terminate();
+                    return true;
                 };
+                return false;
             });
 
             // tính cục
@@ -421,11 +437,12 @@ module {
                                         "Trung nguyên";
                                     };
             var current_year = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) : () {
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : (Bool) {
                 if (id == (tueKe % 60)) {
                     current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
-                    terminate();
+                    return true;
                 };
+                return false;
             });
             return (ky_nguyen_name, tueKe % 60, current_year)
         };
@@ -464,7 +481,7 @@ module {
         public func phuong_vi_phuc_tinh() : (Text) {
             let tueKe = tue_ke();
             var phuc_tinh = "";
-            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()) : () {
+            _move_luc_thap_hoa_giap(null, null, null, func (id : Nat, gz : Types.GZTimeIndex) : (Bool) {
                 if (id == (tueKe % 60)) {
                     phuc_tinh := (if (THIEN_CAN[gz.can].0 == Types.CAN.GIAP) {
                         CHI.DAN
@@ -489,8 +506,9 @@ module {
                     } else if (THIEN_CAN[gz.can].0 == Types.CAN.QUY) {
                         CHI.MAO
                     } else (""));
-                    terminate();
+                    return true;
                 };
+                return false;
             });
             return phuc_tinh;
         };
@@ -509,12 +527,13 @@ module {
             let chi_index = 0; // tý
             let nguyen = THIEN_CAN[can_index].0 # " " # DIA_CHI[chi_index].0;
             var current_year = "";
-            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (id : Nat, gz : Types.GZTimeIndex, terminate : () -> ()): () {
+            _move_luc_thap_hoa_giap(?THIEN_CAN[can_index].1, ?1, ?72, func (id : Nat, gz : Types.GZTimeIndex): (Bool) {
                 if (id == (tueKe % 72)) {
                     // found
                     current_year := THIEN_CAN[gz.can].0 # " " # DIA_CHI[gz.chi].0;
-                    terminate();
+                    return true;
                 };
+                return false;
             });
             let cuc = if (tueKe % 72 == 0) (72) else (tueKe % 72); 
             return (cuc, nguyen, current_year);
@@ -1044,7 +1063,22 @@ module {
         let dai_tuong = t.tim_dai_tuong();
         let dai_du = t.dai_du_thai_at();
         let tieu_du = t.tieu_du_thai_at();
-        info.add("Số năm từ Thượng cổ Giáp Tý đến " # t.getYear() # ": " # debug_show(t.tich_nien()));
+        let (keType, keName) = t.getKeType();
+        switch (keType) {
+            case (#THOI_KE) {
+                info.add("t(HH) = (H + 1) * 60 / 2");
+                info.add("T(YYYY/MM/DD HH:mm) = ((x - 1) * 12) + (t(HH) / 60 + (t % 60 != 0)])");
+                info.add("Số giờ từ ngày Giáp Tý: "  # debug_show(t.tich_nien()));
+            };
+            case (#NGUYET_KE) {
+                info.add("T(YYYY/MM) = |(Y - 424) * 12 - 1 + M| + 3");
+                info.add("Số tháng từ Ngày 1 tháng 11 (âm lịch) năm 424: "  # debug_show(t.tich_nien()));
+            };
+            case (_) {
+                info.add("T(Y) = 3600 * 2821 + (Y - 1683)");
+                info.add("Số năm từ Thượng cổ Giáp Tý đến " # t.getYear() # ": " # debug_show(t.tich_nien()))
+            };
+        };
         info.add("Dương Lịch: " # t.getDuongLich());
         info.add("Âm Lịch: " # t.getAmLich());
         info.add("Âm Lịch GanZhi: " # t.getGZAmLich());
@@ -1061,7 +1095,7 @@ module {
         for (dt in dai_tuong.vals()) {
             info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
         };
-        info.add("Đại du Thái Ất: " # nghiem_ly.infoDaiDu());
+        info.add("Đại du Thái Ất  " # nghiem_ly.infoDaiDu());
         info.add("Tiểu du Thái Ất: " # debug_show(tieu_du));
         info.add("Tìm Chủ - Khách: " # debug_show(t.tim_chu_khach_1()));
 
@@ -1123,7 +1157,7 @@ module {
 
         public func infoDaiDu() : Text {
             let ((cung_chu, dai_du), cung) = t.dai_du_thai_at();
-            debug_show((cung_chu, dai_du, cung)) # _dai_du_thai_at(dai_du, cung);
+            debug_show((cung_chu, dai_du, cung)) # ": " # _dai_du_thai_at(dai_du, cung);
         };
 
         public func infoChuDaiTuong() : Text {
