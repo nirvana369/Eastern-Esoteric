@@ -23,6 +23,7 @@
 * 31/08/2025        nirvana369      Table viewer: add class BatQuaiViewer() & ThaiAtTranDo()           
 * 01/09/2025        nirvana369      + Implement Nguyệt kế & Thời kế
 *                                   + Trạng thái Vượng, Tướng, Thai, Một, Tù, Tử, Hưu, Phế
+* 04/09/2025        nirvana369      Tìm Kế Mục - Khách kế mục tham tướng
 ******************************************************************/
 
 import Int "mo:base/Int";
@@ -128,6 +129,28 @@ module {
         return i - 1;
     };
 
+    private func _dia_chi_hop(chi : Nat) : (Text, Nat) {
+        let hopFunc = func (x : Text) : (Text, Nat) {
+            switch (Array.indexOf<Text>(x, Types.DIA_CHI, func (_1 : Text, _2 : Text) = Text.equal(_1, _2))) {
+                case (?n) (x, n);
+                case (null) (x, 0);
+            };
+        };
+        if (Types.DIA_CHI[chi] == Types.CHI.TY) return hopFunc(Types.CHI.SUU);
+        if (Types.DIA_CHI[chi] == Types.CHI.SUU) return hopFunc(Types.CHI.TY);
+        if (Types.DIA_CHI[chi] == Types.CHI.DAN) return hopFunc(Types.CHI.HOI);
+        if (Types.DIA_CHI[chi] == Types.CHI.MAO) return hopFunc(Types.CHI.TUAT);
+        if (Types.DIA_CHI[chi] == Types.CHI.THIN) return hopFunc(Types.CHI.DAU);
+        if (Types.DIA_CHI[chi] == Types.CHI.TI) return hopFunc(Types.CHI.THAN);
+        if (Types.DIA_CHI[chi] == Types.CHI.NGO) return hopFunc(Types.CHI.MUI);
+        if (Types.DIA_CHI[chi] == Types.CHI.MUI) return hopFunc(Types.CHI.NGO);
+        if (Types.DIA_CHI[chi] == Types.CHI.THAN) return hopFunc(Types.CHI.TI);
+        if (Types.DIA_CHI[chi] == Types.CHI.DAU) return hopFunc(Types.CHI.THIN);
+        if (Types.DIA_CHI[chi] == Types.CHI.TUAT) return hopFunc(Types.CHI.MAO);
+        if (Types.DIA_CHI[chi] == Types.CHI.HOI) return hopFunc(Types.CHI.DAN);
+        ("", 0);
+    };
+
     private func _move_luc_thap_hoa_giap(_can : ?Nat, 
                                             _chi : ?Nat, 
                                             _stop : ?Nat, 
@@ -187,6 +210,7 @@ module {
         var day : Int = 1;
         var hour : Int = 1;
         var minute : Int = 1;
+        var yearGanZhi : Types.GZTimeIndex = Types._newGZTime(0, 0);
 
         public func getYear() : Text {
             if (year > 0) return Int.toText(year);
@@ -251,6 +275,9 @@ module {
         };
 
         public func tich_nien() : Nat {
+            let (gzNam, _, gzNgay, _) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
+            yearGanZhi := gzNam;
+
             switch (ke_type) {
                 case (#NGUYET_KE) {
                     /***
@@ -281,7 +308,6 @@ module {
                     let (solar_index, _) = SOLAR24.getSolarTerm(year, month, day, hour, minute);
                     if (solar_index > 12) is_duong_cuc := false;
 
-                    let (_, _, gzNgay, _) = AmLich.ngayThangNamCanChi(day, month, year, hour, 7);
                     var so = 0;
                     _move_luc_thap_hoa_giap(null, null, ?181, func (id : Nat, gz : Types.GZTimeIndex) : Bool {
                         if (gzNgay.can == gz.can and gzNgay.chi == gz.chi) {
@@ -623,6 +649,74 @@ module {
             return ([], DIA_BAN[thuy_kich_index]);
         };
 
+        public func ke_muc() : (Nat, (Text, Nat)) {
+            var lookup = func (x : (Text, Nat)) : Nat {
+                Option.get(Array.indexOf(x, CLOCK_BAT_QUAI, 
+                                            func (x : (Text, Nat), y : (Text, Nat)) : Bool {
+                                                x.0 == y.0 and x.1 == y.1
+                                            }
+                ), x.1 - 1);
+            };
+            /*
+            *   Kế mục 
+            *   Lấy năm hợp gia vào năm chi (tính khoảng cách), tìm cung Văn Xương (cộng khoảng cách để tìm vị trí) 
+            *   khởi đếm đến trước cung Thái Ất thì dừng
+            *   Cộng lại trừ 10 lấy lẻ (là số Đại tướng), số lẻ nhân 3 là Kế Mục của Tham Tướng
+            */
+            let year_hop = _dia_chi_hop(yearGanZhi.chi);
+            let (_, van_xuong) = tim_thien_muc_van_xuong();
+            let thai_at = tim_thai_at();
+
+            let cung_year = map_CHI_CAN(Types.DIA_CHI[yearGanZhi.chi]);
+            let cung_year_hop = map_CHI_CAN(year_hop.0);
+            let cung_van_xuong = map_CHI_CAN(van_xuong.0);
+            let cung_thai_at = map_CHI_CAN(thai_at.cung.0);
+            
+            // map lại vị trí theo bát quái chiều kim đồng hồ
+            let cung_year_index = lookup(cung_year);
+            var cung_year_hop_index = lookup(cung_year_hop);
+            var gia = 0;
+            // gia cung năm hợp vào năm hiện tại
+            while (cung_year_hop_index != cung_year_index) {
+                cung_year_hop_index := move(7, cung_year_hop_index, 1); // xoay chiều kim đồng hồ tìm đến năm hiện tại
+                gia += 1;
+            };
+            var cung_van_xuong_index = lookup(cung_van_xuong);
+            // đưa văn xương về vị trí theo cung chi hợp đã gia vào cung chi năm hiện tại
+            while (gia != 0) {
+                cung_van_xuong_index := move(7, cung_van_xuong_index, 1);
+                gia -= 1;
+            };
+            let cung_thai_at_index = lookup(cung_thai_at);
+
+            var num = 0;
+            while (cung_van_xuong_index != cung_thai_at_index) {
+                num += CLOCK_BAT_QUAI[cung_van_xuong_index].1;
+                cung_van_xuong_index := move(7, cung_van_xuong_index, 1);
+            };
+            var khach_ke_muc_dai_tuong = num;
+            while (khach_ke_muc_dai_tuong > 10) {
+                khach_ke_muc_dai_tuong -= 10;
+            };
+            var khach_ke_muc_tham_tuong = khach_ke_muc_dai_tuong * 3;
+            while (khach_ke_muc_tham_tuong > 10) {
+                khach_ke_muc_tham_tuong -= 10;
+            };
+
+            // map vào bát quái có trung cung
+            lookup := func (x : (Text, Nat)) : Nat {
+                Option.get(Array.indexOf(x, Types.BAT_QUAI, 
+                                            func (x : (Text, Nat), y : (Text, Nat)) : Bool {
+                                                x.1 == y.1
+                                            }
+                ), x.1 - 1);
+            };
+
+            let khach_ke_muc_tham_tuong_index = lookup(("", khach_ke_muc_tham_tuong));
+            
+            (num, Types.BAT_QUAI[khach_ke_muc_tham_tuong_index]);
+        };
+
         public func tim_chu_khach() : ([(((Text, Text), Nat), (Nat))], (Nat, Nat)) {
             let DIA_BAN_BAT_QUAI_INDEX = [  // map DIA_BAN 16 vi trí sang địa bàn 12 cung
                 ((CAN_KIM.0, CHI.HOI), 1),      // index: 0
@@ -873,11 +967,12 @@ module {
             let dai_tuong = t.tim_dai_tuong();
             let dai_du = t.dai_du_thai_at();
             let tieu_du = t.tieu_du_thai_at();
+            let (ke_muc, muc_tham_tuong) = t.ke_muc();
             
             push(TRUNG.0, "Năm: " # debug_show(can_chi_nam));
             push(TRUNG.0, t.getYear());
-            push(TRUNG.0, "Chủ: " # debug_show(chu_khach.0));
-            push(TRUNG.0, "Khách: " # debug_show(chu_khach.1));
+            push(TRUNG.0, "Chủ: " # debug_show(chu_khach.0) # " - Khách: " # debug_show(chu_khach.1));
+            // push(TRUNG.0, "Khách: " # debug_show(chu_khach.1));
             push(TRUNG.0, "");
             push(TRUNG.0, "Cục: " # debug_show(cuc) # " | " # nguyen);
             push(TRUNG.0, "Nguyên: " # debug_show(ky_nguyen));
@@ -887,6 +982,7 @@ module {
             push(map_CHI_CAN(thuy_kich.0).0,"Thủy Kích");
             push(map_CHI_CAN(dai_du.1.0).0,"Đại Du");
             push(map_CHI_CAN(tieu_du.0).0,"Tiểu Du");
+            push(map_CHI_CAN(muc_tham_tuong.0).0,"K.Kế Mục");
             for ((name, dt) in dai_tuong.vals()) {
                 push(map_CHI_CAN(dt.0).0, name);
             };
@@ -1064,6 +1160,7 @@ module {
         let dai_du = t.dai_du_thai_at();
         let tieu_du = t.tieu_du_thai_at();
         let (keType, keName) = t.getKeType();
+        let (ke_muc, muc_tham_tuong) = t.ke_muc();
         switch (keType) {
             case (#THOI_KE) {
                 info.add("t(H:m) = ((H + 1) * 60 + m) / 2");
@@ -1092,6 +1189,7 @@ module {
         info.add("Bát Môn: " # debug_show(bat_mon));
         info.add("Tìm Chủ - Khách: " # debug_show(chu_khach));
         info.add("Tìm Đại Tướng: " # debug_show(dai_tuong));
+        info.add("Tìm Khách Kế Mục: " # Nat.toText(ke_muc) # " | " # debug_show(muc_tham_tuong));
         for (dt in dai_tuong.vals()) {
             info.add("\n  - " # debug_show(dt) # " -> Môn: " # (find_bat_mon(bat_mon, dt.1)));
         };
@@ -1119,8 +1217,42 @@ module {
 
     
     public class ThaiAtGianDiLuc(t : ThaiAt) {
+        type TAI_HOA_STATE = {
+            #UNDEF;
+            #YEM;   // Yểm
+            #BACH;  // Bách
+            #QUAN;  // Quan
+            #TU;    // Tù
+            #KICH;  // Kích
+            #CACH;  // Cách
+            #DOI;   // Đối
+            #DE;    // Đề
+            #HIEP;  // Hiệp
+            #CO;    // Cố
+            #DO;    // Đỗ
+        };
+        let ((cung_chu, dai_du), cung) = t.dai_du_thai_at();
+        let (_, (chu, khach)) = t.tim_chu_khach();
+        let (vx18, van_xuong) = t.tim_thien_muc_van_xuong();
+        let (_, thuy_kich) = t.tim_khach_muc_thuy_kich();
+        let thai_at = t.tim_thai_at();
+        let thai_at_cung = thai_at.cung;
+
+        private func _tai_hoa_state() : [(TAI_HOA_STATE, Text)] {
+            let info = Buffer.Buffer<(TAI_HOA_STATE, Text)>(0);
+            if (map_CHI_CAN(thuy_kich.0) == map_CHI_CAN(thai_at.cung.0)) {
+                info.add(#YEM, "Yểm: Thủy Kích gia ở cung Thái Ất")
+            };
+            if (map_CHI_CAN(thuy_kich.0) == map_CHI_CAN(thai_at.cung.0)) {
+                info.add(#BACH, "Bách: Nhị Mục, tứ tướng và kế mục ở bên phải bên trái Thái Ất")
+            };
+            // ...
+            if (info.size() == 0) return [(#UNDEF, "")];
+            Buffer.toArray(info);
+        };
 
         private func _dai_du_thai_at(n : Nat, cung_dai_du : (Text, Nat)) : Text {
+            let info = Buffer.Buffer<Text>(0);
             let result = Nat.toText(n) # (if (n == 1 or n == 11 or n == 21) {
                                 " -> Bất lợi cho vua";
                             } else if (n == 2 or n == 12 or n == 22 or n == 32) {
@@ -1156,7 +1288,6 @@ module {
         };
 
         public func infoDaiDu() : Text {
-            let ((cung_chu, dai_du), cung) = t.dai_du_thai_at();
             debug_show((cung_chu, dai_du, cung)) # ": " # _dai_du_thai_at(dai_du, cung);
         };
 
@@ -1195,24 +1326,94 @@ module {
             ("")
         };
 
+        func _chu_khach_thai_at_nhi_muc_numberlogy_state(num : Nat) : (Text) {
+            // dùng cho số
+            if (num < 5) {
+                return "Vô Địa, gặp điều xấu thì đất có biến đổi lạ thường như núi lở, đất rung, sông cạn, nước bồng, thậm chí còn có sâu bọ nảy sinh, người dân thịt lẫn nhau";
+            };
+            // Chọn chủ/khách, thái ất, nhị mục tốt xấu
+            let state = HashMap.HashMap<Text, [Nat]>(0, Text.equal, Text.hash);
+            state.put("Thượng Hòa : Tám phương yên bình, nước có điều lành. Nhị mục vậy là tướng đại lợi.", 
+                    [14, 18, 23]);
+            state.put("Thứ Hòa : Thiên hạ yên hòa, nhân dân vui vẻ, mùa màng được.", 
+                    [23, 36, 29]);
+            state.put("Hạ Hòa: Chín cõi bình yên, cơm áo no đủ. Tuế kế gặp là năm thông thái.", 
+                    [12, 16, 27, 34, 38]);
+            state.put("Tam tài đủ, tính Tuế Kế mà gặp thế, không gặp quan, tù, yểm, bách, cách, đối, đề, hiệp phạm thì chủ việc trời giáng phúc lành, dân yên, mùa được.",
+                    [16, 26, 36, 17, 27, 37, 19, 29, 39]);
+            state.put("Vô Thiên; gặp quan, tù, yểm, bách, cách, tuyệt và âm dương bất hòa thì trời có biến đổi lạ thường, hai sao bị ăn khuyết, năm vĩ sai lệch, có sao chổi (thổ) xuất hiện, thì tai họa sương buông, mưa đá",
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            state.put("số Không qua 1, là Vô Nhân; hoặc các điều phạm bất hòa thì con người biến đổi lạ thường như cãi cọ, lật lọng, dối trá, trộm cướp; Thậm chí còn loạn lạc, tật dịch, phiêu bạt, mất mùa, chết đói, rất nhiều tàn hại.",
+                    [10, 20, 30, 40]);
+            state.put("", []);
+            state.put("", []);
+            for ((r, nums) in state.entries()) {
+                for (n in nums.vals()) {
+                    if (n == num) return r;
+                };
+            };
+            ("")
+        };
+
+        func _chu_khach_thai_at_nhi_muc_palace_state(cung : Nat) : (Text) {
+            let info = Buffer.Buffer<Text>(0);
+            // dùng cho cung 1-9
+            if (cung == 1 and cung == 2) {
+                info.add("Số 1 là Cung; Số 2 là Tỷ Cung");
+                info.add("Có biến động ở vua");
+                info.add("số tính mà Hòa, không có Tù, Bách thì vua có phúc lành");
+                info.add("bất Hòa, lại có Tù, Bách là trời biến động, vua có điều lo");
+                info.add("Như năm Kỷ Mão, năm thứ hai niên hiệu Vũ Đức nhà Đường. Năm này Thái Ất vào cục 16, nguyên Giáp Tý; Thái Ất ở cung 7; Thiên mục ở Mùi, Thiên đạo; Chủ tính được 1, Hòa, Thiên hạ yên ninh");
+            } else if (cung == 3 and cung == 4) {
+                info.add("Số 3 là Trủy; Số 4 là Tỷ Trủy");
+                info.add("Có biến ở tôn miếu");
+                info.add("Số tính là Hòa, có tăng bổ, chủ về tôn thân");
+                info.add("bất Hòa hoặc Bách, Kích, lập tức bị phế hoại");
+                info.add("Năm Đinh Mùi, niên hiệu Thái Khang, nhà Tấn năm thứ tám, Thái Ất ở cục 44, ở cung 8; Thiên Mục ở Sửu, Dương Đức; Chủ -> 33, Trủy; Thiên Mục gián thần gặp Bách; Chủ, Đại tướng ở ngoài cung Bách. Năm ấy nhà Thái Miếu gặp tai họa");
+            } else if (cung == 5 and cung == 6) {
+                info.add("Số 5 là Vũ; Số 6 là Tỷ Vũ");
+                info.add("Có biến ở bậc hậu phi");
+                info.add("Số tính là Hòa, không gặp Tù, Kích, Bách, Hiệp là lành, trái lại là dữ");
+                info.add("bất Hòa, gặp Tù, Kích, Bách, Hiệp là dữ");
+                info.add("Năm Đinh Mão, năm thứ 3 niên hiệu Nguyên Đỉnh nhà Hán, Thái Ất vào cục 4, ở cung 2; Thiên Mục ở Càn, Âm Đức; Chủ 25 là Vũ, Đỗ không thông, vô môn; Thủy Kích ở Sửu, Dương Đức; khách 7 bất hòa. Năm đó Thái hậu mất");
+            } else if (cung == 7 and cung == 8) {
+                info.add("Số 7 là Thương; Số 8 là Tỷ Thương");
+                info.add("Có biến ở con cháu");
+                info.add("Số tính là Hòa, không gặp Quan, Tù, Yểm, Bách, chủ việc Thái tử có sự được thành lập, trái thế là có sự lo");
+                info.add("Năm đầu niên hiệu Thiên Tích triểu Ngụy; Thái Ất vào cục 17, ở cung 7; Thiên Mục ở Khôn, Đại Vũ; Chủ 7. Năm ấy lập hoàng thái từ");
+            } else if (cung == 9 and cung == 10) {
+                info.add("Số 9 là Giốc; Số 10 là Tỷ Giốc");
+                info.add("Có biến ở thứ dân");
+                info.add("Số tính là Hòa, không gặp Tù, Bách là dân yên vật thịnh");
+                info.add("bất Hòa, gặp Tù, Bách là gặp tật dịch, đói rét, sâu bệnh");
+                info.add("Năm đầu niên hiệu Kiến An nhà Hán; Thái Ất vào cục 25, cung 1; Thiên Mục ở Tý, Địa Chủ; Chủ 29, năm ấy có bệnh dịch lớn");
+            } else {
+                info.add("page 40");
+                info.add("");
+            };
+            Text.join("\n", info.vals());
+        };
+
         public func infoCoDonAmDuong() : Text {
-            let (_, (chu, khach)) = t.tim_chu_khach();
-            let (_, (chuCD, chuAD)) = _co_don_am_duong(chu);
-            let (_, (khachCD, khachAD)) = _co_don_am_duong(khach);
+            let info = Buffer.Buffer<Text>(0);
+
+            let (c, (chuCD, chuAD)) = _co_don_am_duong(chu);
+            let (k, (khachCD, khachAD)) = _co_don_am_duong(khach);
+            let ret = "((" # c # "), (" # k # ")):";
             if (chuAD == khachAD) {
                 if (chuAD == 1) {
                     if (chuCD != khachCD) { 
                         // trùng dương
-                        return " Tai ách về Hỏa";
+                        return (ret # " Tai ách về Hỏa");
                     } else {
-                        return " Bất lợi cho Chủ";
+                        return (ret # " Bất lợi cho Chủ");
                     };
                 } else {
                     if (chuCD != khachCD) { 
                         // trùng âm
-                        return " Tai ách về Thủy";
+                        return (ret # " Tai ách về Thủy");
                     } else {
-                        return " Bất lợi cho Khách";
+                        return (ret # " Bất lợi cho Khách");
                     };
                 };
             };
