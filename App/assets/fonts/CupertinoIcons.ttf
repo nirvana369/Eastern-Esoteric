@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#1a1a2e">
+
+  <!-- Xác minh quyền sở hữu site với Google Search Console -->
+  <meta name="google-site-verification" content="X_KDT28HB0r4un6XFgBazvhTzWd-PPdyriMtLtHaExs" />
+
+  <!-- SEO -->
+  <title>Phần Mềm Huyền Học — Tử Vi, Tứ Trụ, Kinh Dịch, Phong Thủy</title>
+  <meta name="description" content="Phần mềm huyền học online: lập lá số Tử Vi, Tứ Trụ Bát Tự, gieo quẻ Kinh Dịch, la bàn phong thủy huyền không phi tinh — luận giải đại vận, lưu niên, dụng thần kết hợp AI.">
+  <meta name="keywords" content="phần mềm huyền học, tử vi, lá số tử vi, tứ trụ, bát tự, kinh dịch, mai hoa dịch số, phong thủy, huyền không phi tinh, la bàn, dụng thần, đại vận, lưu niên">
+  <meta name="author" content="Phần Mềm Huyền Học">
+  <meta name="application-name" content="Phần Mềm Huyền Học">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://phanmemhuyenhoc.vn/">
+
+  <!-- Open Graph / Facebook / Zalo -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phanmemhuyenhoc.vn/">
+  <meta property="og:title" content="Phần Mềm Huyền Học — Tử Vi, Tứ Trụ, Kinh Dịch">
+  <meta property="og:description" content="Phần mềm huyền học toàn diện: tử vi, tứ trụ bát tự, kinh dịch, phong thủy huyền không phi tinh — luận giải kết hợp AI.">
+  <meta property="og:image" content="https://phanmemhuyenhoc.vn/icons/Icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="Phần Mềm Huyền Học — tử vi, tứ trụ, kinh dịch, phong thủy">
+  <meta property="og:locale" content="vi_VN">
+  <meta property="og:site_name" content="Phần Mềm Huyền Học">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phần Mềm Huyền Học — Tử Vi, Tứ Trụ, Kinh Dịch">
+  <meta name="twitter:description" content="Phần mềm huyền học toàn diện: tử vi, tứ trụ bát tự, kinh dịch, phong thủy.">
+  <meta name="twitter:image" content="https://phanmemhuyenhoc.vn/icons/Icon-512.png">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://phanmemhuyenhoc.vn/#website",
+        "url": "https://phanmemhuyenhoc.vn/",
+        "name": "Phần Mềm Huyền Học",
+        "inLanguage": "vi-VN",
+        "publisher": { "@id": "https://phanmemhuyenhoc.vn/#organization" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://phanmemhuyenhoc.vn/#organization",
+        "name": "Phần Mềm Huyền Học",
+        "url": "https://phanmemhuyenhoc.vn/",
+        "logo": "https://phanmemhuyenhoc.vn/icons/Icon-512.png"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Phần Mềm Huyền Học",
+        "url": "https://phanmemhuyenhoc.vn/",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web, Android, iOS",
+        "description": "Phần mềm lập lá số Tử Vi, Tứ Trụ Bát Tự, gieo quẻ Kinh Dịch và la bàn phong thủy huyền không phi tinh — luận giải đại vận, lưu niên, dụng thần kết hợp AI.",
+        "inLanguage": "vi-VN",
+        "publisher": { "@id": "https://phanmemhuyenhoc.vn/#organization" },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "VND"
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Phần Mềm Huyền Học">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon. Google lấy favicon theo kích thước bội số của 48px và có dò
+       thẳng /favicon.ico, nên khai báo đủ cả hai. Không trỏ vào logo.png gốc
+       (3592x3592, 3.5MB) vì quá nặng để Google nhận làm favicon. -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png">
+
+  <link rel="manifest" href="manifest.json">
+
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+<script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
