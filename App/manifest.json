@@ -1,0 +1,78 @@
+{
+    "name": "Phần Mềm Huyền Học",
+    "short_name": "Huyền Học",
+    "start_url": "/?utm_source=pwa",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "description": "Phần mềm huyền học: lập lá số Tử Vi, Tứ Trụ Bát Tự, gieo quẻ Kinh Dịch, la bàn phong thủy huyền không phi tinh — luận giải kết hợp AI.",
+    "lang": "vi",
+    "dir": "ltr",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": [
+        "lifestyle",
+        "education",
+        "books"
+    ],
+    "shortcuts": [
+        {
+            "name": "Tử Vi",
+            "short_name": "Tử Vi",
+            "url": "/?screen=tuvi",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Tứ Trụ",
+            "short_name": "Tứ Trụ",
+            "url": "/?screen=battu",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Kinh Dịch",
+            "short_name": "Dịch",
+            "url": "/?screen=dich",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
